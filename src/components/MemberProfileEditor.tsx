@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePlanner } from '../hooks/usePlanner';
-import { Edit2, X, Save } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 
 interface MemberProfileEditorProps {
   memberId: string;

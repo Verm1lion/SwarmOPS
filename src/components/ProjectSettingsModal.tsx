@@ -14,7 +14,7 @@ const colors = [
 ];
 
 export function ProjectSettingsModal({ onClose }: ProjectSettingsModalProps) {
-  const { activeProject, members, visibleMembers, currentMember, updateProject, regenerateJoinCode, updateMemberRole, removeMember, updateCurrentMemberProfile } = usePlanner();
+  const { activeProject, visibleMembers, currentMember, updateProject, regenerateJoinCode, updateMemberRole, removeMember } = usePlanner();
   const [formData, setFormData] = useState({
     name: activeProject?.name || '',
     description: activeProject?.description || '',

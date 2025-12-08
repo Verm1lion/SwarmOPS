@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { usePlanner } from '../hooks/usePlanner';
 import { ChevronDown, Copy, Eye, EyeOff, Plus, Settings, Archive } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, isWithinInterval, isPast } from 'date-fns';
+import { startOfWeek, endOfWeek, isWithinInterval, isPast } from 'date-fns';
 import { ProjectSettingsModal } from './ProjectSettingsModal';
 import { ArchiveProjectModal } from './ArchiveProjectModal';
 
@@ -10,7 +10,7 @@ interface ProjectSidebarProps {
 }
 
 export function ProjectSidebar({ onNewTask }: ProjectSidebarProps) {
-  const { activeProject, tasks, comments } = usePlanner();
+  const { activeProject, tasks } = usePlanner();
   const [joinCodeVisible, setJoinCodeVisible] = useState(false);
   const [overviewOpen, setOverviewOpen] = useState(true);
   const [joinCodeOpen, setJoinCodeOpen] = useState(true);

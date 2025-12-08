@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import { Project, ProjectMember, Task, MemberRole } from '../types';
+import { Project, ProjectMember, MemberRole } from '../types';
 
 interface AdminContextType {
   projects: Project[];
@@ -37,15 +37,6 @@ function toCamelCase(obj: any): any {
 
 function generateJoinCode(): string {
   return Math.random().toString(36).substring(2, 10).toUpperCase();
-}
-
-const AVATAR_COLORS = [
-  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-  '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
-];
-
-function getRandomAvatarColor(): string {
-  return AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)];
 }
 
 export function AdminProvider({ children }: { children: ReactNode }) {

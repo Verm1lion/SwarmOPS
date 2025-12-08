@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DarkModeProvider } from './context/DarkModeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { PlannerProvider } from './context/PlannerContext';

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { usePlanner } from '../hooks/usePlanner';
 import { TaskStatus, TaskPriority } from '../types';
-import { supabase } from '../lib/supabase';
 import { X, Paperclip } from 'lucide-react';
 
 interface NewTaskModalProps {

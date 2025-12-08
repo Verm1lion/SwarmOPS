@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAdmin } from '../context/AdminContext';
 import { Project, ProjectMember, MemberRole } from '../types';
-import { X, Plus, Trash2, User } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ProjectMembersModalProps {

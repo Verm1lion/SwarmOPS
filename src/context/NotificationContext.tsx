@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { Notification, TaskActivity } from '../types';
 import { usePlanner } from '../hooks/usePlanner';
@@ -8,7 +8,7 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  clearAll: () => Promise<void>;
+  clearAll: () => void;
   fetchNotifications: () => Promise<void>;
 }
 

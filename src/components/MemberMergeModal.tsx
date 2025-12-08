@@ -1,5 +1,5 @@
 import { ProjectMember } from '../types';
-import { X, User, Check, XCircle } from 'lucide-react';
+import { Check, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface MemberMergeModalProps {
