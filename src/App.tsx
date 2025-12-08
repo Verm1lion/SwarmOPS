@@ -1,79 +1,61 @@
-import { useState } from 'react';
-import { PlannerProvider, usePlannerStore } from './hooks/usePlannerStore';
-import { Sidebar } from './components/layout/Sidebar';
-import { Board } from './components/board/Board';
-import { EntryScreen } from './components/entry/EntryScreen';
-import { ProjectModal } from './components/board/ProjectModal';
-import { isSupabaseConfigured } from './lib/supabaseClient';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { DarkModeProvider } from './context/DarkModeContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { PlannerProvider } from './context/PlannerContext';
+import { AdminProvider } from './context/AdminContext';
+import { Layout } from './components/Layout';
+import { EntryScreen } from './components/EntryScreen';
+import { Board } from './components/Board';
+import { AdminDashboard } from './components/AdminDashboard';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { usePlanner } from './hooks/usePlanner';
 
 function AppContent() {
-  const { selectedProjectId, isLoading, createProjectWithJoinCode } = usePlannerStore();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { activeProject, loading } = usePlanner();
 
-  // Check if Supabase is configured
-  if (!isSupabaseConfigured()) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Configuration Required</h1>
-          <p className="text-gray-600 mb-4">
-            Supabase is not configured. Please set the following environment variables:
-          </p>
-          <ul className="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
-            <li><code className="bg-gray-100 px-1 rounded">VITE_SUPABASE_URL</code></li>
-            <li><code className="bg-gray-100 px-1 rounded">VITE_SUPABASE_ANON_KEY</code></li>
-          </ul>
-          <p className="text-sm text-gray-500">
-            Create a <code className="bg-gray-100 px-1 rounded">.env.local</code> file in the project root with these variables.
-          </p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // Show entry screen if no project is selected
-  if (!selectedProjectId && !isLoading) {
-    return (
-      <>
-        <EntryScreen onCreateProject={() => setIsCreateModalOpen(true)} />
-        <ProjectModal
-          project={null}
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSave={async (projectData) => {
-            return await createProjectWithJoinCode(projectData);
-          }}
-          showJoinCode={true}
-        />
-      </>
-    );
-  }
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
-  // Show board layout when project is selected
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100">
-      <Sidebar />
-      <Board />
-    </div>
+    <>
+      {!activeProject ? (
+        <EntryScreen />
+      ) : (
+        <Layout>
+          <Board />
+        </Layout>
+      )}
+    </>
   );
 }
 
 function App() {
   return (
-    <PlannerProvider>
-      <AppContent />
-    </PlannerProvider>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <DarkModeProvider>
+          <AdminProvider>
+            <PlannerProvider>
+              <NotificationProvider>
+                <Routes>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="*" element={<AppContent />} />
+                </Routes>
+              </NotificationProvider>
+            </PlannerProvider>
+          </AdminProvider>
+        </DarkModeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
 export default App;
-

@@ -1,240 +1,187 @@
-# Multi-User Kanban Planner
+# SwarmOPS - Project Management Application
 
-A collaborative project tracking web app inspired by Microsoft Planner's board view. Built with React, TypeScript, and Supabase for real-time multi-user collaboration. Projects can be shared using join codes.
+A modern, real-time Kanban board project management application built with React, TypeScript, and Supabase.
 
 ## Features
 
-- **Multi-User Collaboration**: Share projects with team members using join codes
-- **Project Management**: Create, edit, and delete projects with custom names, descriptions, and colors
-- **Kanban Board**: Three-column board view (To Do, In Progress, Done) for each project
-- **Task Management**: Create, edit, delete, and move tasks between columns
-- **Drag & Drop**: Intuitive drag-and-drop to move tasks between columns
-- **Task Details**: Set priorities (Low/Medium/High), due dates, and descriptions
-- **Search & Filter**: Search tasks by title and filter by status
-- **Responsive Design**: Works on desktop and mobile devices
-- **Real-time Sync**: Changes sync across all users viewing the same project
+- **Real-time Kanban Board**: Drag and drop tasks across columns (Ideas, To-Do, In Progress, Done)
+- **Project Management**: Create projects, join with codes, manage members
+- **Task Management**: Create tasks with descriptions, priorities, due dates, and file attachments
+- **Comments & Mentions**: Add comments to tasks and mention team members
+- **Role-Based Access Control**: Owner, Admin, Member, and Viewer roles
+- **Dark Mode**: Toggle between light and dark themes
+- **Notifications**: Real-time notifications for task assignments, mentions, and comments
+- **Admin Dashboard**: Hidden admin panel for project management
+- **Session Persistence**: Automatic session restoration on page refresh
 
 ## Tech Stack
 
-- React 18 + TypeScript
-- Vite (build tool)
-- Tailwind CSS (styling)
-- @hello-pangea/dnd (drag and drop)
-- Supabase (backend database)
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Real-time, Storage)
+- **Drag & Drop**: @hello-pangea/dnd
+- **Icons**: lucide-react
+- **Date Formatting**: date-fns
+- **Routing**: react-router-dom
 
-## Supabase Setup
+## Prerequisites
 
-### 1. Create a Supabase Project
+- Node.js 18+ and npm
+- Supabase account and project
 
-1. Go to [supabase.com](https://supabase.com) and sign up/login
-2. Create a new project
-3. Wait for the project to be fully provisioned
+## Setup Instructions
 
-### 2. Get Your Credentials
+### 1. Clone the Repository
 
-1. In your Supabase project dashboard, go to **Settings** → **API**
-2. Copy your **Project URL** (this is your `VITE_SUPABASE_URL`)
-3. Copy your **anon public** key (this is your `VITE_SUPABASE_ANON_KEY`)
-
-### 3. Set Up Environment Variables
-
-Create a `.env.local` file in the project root:
-
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```bash
+git clone <repository-url>
+cd SwarmOPS
 ```
 
-**Important**: Never commit `.env.local` to version control. It's already in `.gitignore`.
+### 2. Install Dependencies
 
-### 4. Create Database Tables
-
-Run the following SQL in your Supabase project's SQL Editor (Dashboard → SQL Editor):
-
-```sql
--- Projects table
-CREATE TABLE projects (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  description text,
-  color text,
-  join_code text NOT NULL UNIQUE,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-
--- Tasks table
-CREATE TABLE tasks (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id uuid REFERENCES projects(id) ON DELETE CASCADE,
-  title text NOT NULL,
-  description text,
-  status text CHECK (status IN ('todo', 'in_progress', 'done')) DEFAULT 'todo',
-  due_date date,
-  priority text CHECK (priority IN ('low', 'medium', 'high')) DEFAULT 'medium',
-  task_order integer DEFAULT 0,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-
--- Enable Row Level Security
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-
--- Allow anonymous access (for Phase 1 - can be restricted later)
-CREATE POLICY "Allow anonymous access to projects" ON projects
-  FOR ALL USING (true);
-
-CREATE POLICY "Allow anonymous access to tasks" ON tasks
-  FOR ALL USING (true);
-```
-
-### 5. Verify Setup
-
-After running the SQL, verify the tables were created:
-- Go to **Table Editor** in your Supabase dashboard
-- You should see `projects` and `tasks` tables
-
-## Installation
-
-1. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Create `.env.local` with your Supabase credentials (see above)
+### 3. Configure Environment Variables
 
-## Development
+Create a `.env.local` file in the root directory:
 
-Start the development server (runs on port 5173, not 3000):
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 4. Set Up Supabase Database
+
+1. Go to your Supabase project dashboard
+2. Navigate to SQL Editor
+3. Run the SQL script from `complete_database_setup.sql` to create all necessary tables, indexes, and RLS policies
+4. Navigate to Storage and create a bucket named `task-attachments` with public read access
+
+### 5. Run the Development Server
 
 ```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+The application will be available at `http://localhost:5174`
 
-To use a different port (e.g., 4000), modify `vite.config.ts`:
+## Database Setup
 
-```typescript
-server: {
-  port: 4000
-}
-```
+Run the SQL script `complete_database_setup.sql` in your Supabase SQL Editor. This script will:
 
-## Usage
+- Create all necessary tables (projects, project_members, tasks, task_comments, etc.)
+- Set up indexes for performance
+- Configure Row Level Security (RLS) policies
+- Create the storage bucket for file attachments
 
-### Creating a Project
+## Storage Setup
 
-1. Click **"Create New Project"** on the entry screen
-2. Enter project name, description (optional), and choose a color
-3. Click **"Create"**
-4. A join code will be displayed (e.g., `ABC123`)
-5. Share this code with your collaborators
+1. Go to Supabase Dashboard → Storage
+2. Create a new bucket named `task-attachments`
+3. Set the bucket to public
+4. Configure policies:
+   - **Public Read**: Allow public read access
+   - **Authenticated Insert/Update/Delete**: Allow authenticated users to upload, update, and delete files
 
-### Joining a Project
+## Admin Access
 
-1. Click **"Join Existing Project with code"** on the entry screen
-2. Enter the join code provided by the project creator
-3. Click **"Join Project"**
-4. You'll see the same board as other collaborators
+To access the admin dashboard:
 
-### Working with Tasks
-
-- Click **"Add task"** at the bottom of any column to create a new task
-- Click on a task card to edit its details
-- Drag and drop tasks between columns to change their status
-- Use the search bar to find tasks by title
-- Use the status filter dropdown to show only specific statuses
-
-### Task Properties
-
-- **Title**: Required, displayed on the task card
-- **Description**: Optional, multiline text
-- **Status**: To Do, In Progress, or Done (can be changed via dropdown or drag-and-drop)
-- **Due Date**: Optional date picker
-- **Priority**: Low (green), Medium (yellow), or High (red)
-
-### Multi-User Behavior
-
-- Changes are automatically synced across all users viewing the same project
-- After creating, updating, or moving a task, the board refreshes to show the latest state
-- Multiple users can work on the same project simultaneously
-
-## Building for Production
-
-Build the app for production:
-
-```bash
-npm run build
-```
-
-The built files will be in the `dist` directory. You can preview the production build with:
-
-```bash
-npm run preview
-```
-
-## How Join Codes Work
-
-- Each project has a unique 6-character join code (uppercase letters and digits)
-- Join codes are generated automatically when a project is created
-- Anyone with the join code can access the project
-- Join codes are case-insensitive (automatically converted to uppercase)
-
-## Testing Multi-User Flow
-
-1. Open the app in one browser/window
-2. Create a new project and note the join code
-3. Open the app in another browser/window (or private/incognito mode)
-4. Join the project using the join code
-5. Create or move a task in one window
-6. Refresh or wait a moment in the other window - you should see the changes
-
-## Data Storage
-
-All data is stored in Supabase:
-- Projects are stored in the `projects` table
-- Tasks are stored in the `tasks` table
-- The app stores the last-used project ID in localStorage for convenience (auto-loads on next visit)
+1. Go to the entry screen
+2. Enter `admin` as the display name
+3. Enter `000000` as the join code
+4. You'll be redirected to the admin dashboard
 
 ## Project Structure
 
 ```
 src/
-  components/
-    board/          # Board-related components
-    entry/          # Entry screen (create/join)
-    layout/         # Layout components (Sidebar)
-    common/         # Shared components (ColorPicker)
-  hooks/            # React hooks (usePlannerStore)
-  lib/              # Supabase client
-  types/            # TypeScript type definitions
-  utils/            # Utility functions (join code generation)
-  App.tsx           # Root component
-  main.tsx          # Entry point
-  index.css         # Global styles
+├── components/        # React components
+├── context/          # React Context providers
+├── hooks/            # Custom React hooks
+├── lib/              # Utility libraries (Supabase client)
+├── types/            # TypeScript type definitions
+└── App.tsx           # Main application component
 ```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Deployment
+
+### Netlify
+
+1. Push your code to GitHub
+2. Connect your repository to Netlify
+3. Set build command: `npm run build`
+4. Set publish directory: `dist`
+5. Add environment variables in Netlify dashboard:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+### Vercel
+
+1. Push your code to GitHub
+2. Import your repository in Vercel
+3. Add environment variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. Deploy
+
+## Features in Detail
+
+### Kanban Board
+
+- Drag and drop tasks between columns
+- Optimistic UI updates for instant feedback
+- Real-time synchronization across all users
+
+### Task Management
+
+- Create tasks with title, description, priority, due date
+- Assign tasks to team members
+- Upload file attachments (PDF, DOC, images, etc.)
+- Add comments with file attachments
+- View task activity history
+
+### Member Management
+
+- Invite members with join codes
+- Assign roles (Owner, Admin, Member, Viewer)
+- Manage member permissions
+- Edit your own profile (display name, avatar color)
+
+### Notifications
+
+- Real-time notifications for:
+  - New task assignments
+  - Mentions in comments
+  - Status changes
+  - New comments
 
 ## Troubleshooting
 
-### "Supabase is not configured" Error
+### "Bucket not found" Error
 
-- Make sure you've created `.env.local` in the project root
-- Verify the environment variable names are correct: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-- Restart the dev server after creating/updating `.env.local`
+Ensure the `task-attachments` bucket exists in Supabase Storage and has proper policies configured.
 
-### "Project not found" Error
+### Session Not Persisting
 
-- Double-check the join code (it's case-insensitive but should match exactly)
-- Verify the project exists in your Supabase database
+Check browser localStorage permissions. The app stores session data in localStorage.
 
-### Changes Not Syncing
+### Real-time Updates Not Working
 
-- The app refetches tasks after write operations
-- If changes don't appear, try refreshing the page
-- Check the browser console for any error messages
+Verify that RLS policies are correctly configured in Supabase and that the anon key has proper permissions.
 
 ## License
 
-This is a personal project for collaborative use.
+MIT
+
+
