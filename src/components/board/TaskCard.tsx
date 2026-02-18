@@ -3,6 +3,8 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Trash2 } from 'lucide-react'
+import { motion, useMotionTemplate, useMotionValue } from 'framer-motion'
+import { MouseEvent } from 'react'
 
 // Define Task Type locally or import shared type
 export type Task = {
@@ -46,97 +48,109 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
         transition,
     }
 
+    // Glow Effect
+    const mouseX = useMotionValue(0)
+    const mouseY = useMotionValue(0)
+
+    function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
+        const { left, top } = currentTarget.getBoundingClientRect()
+        mouseX.set(clientX - left)
+        mouseY.set(clientY - top)
+    }
+
     if (isDragging) {
         return (
             <div
                 ref={setNodeRef}
                 style={style}
-                className="opacity-30 bg-slate-50 p-4 rounded-lg border-2 border-dashed border-primary h-[100px]"
+                className="opacity-30 bg-slate-50 p-4 rounded-2xl border-2 border-dashed border-indigo-500 h-[100px]"
             />
         )
     }
 
     return (
-        <div
+        <motion.div
             ref={setNodeRef}
             style={style}
             {...attributes}
             {...listeners}
             onClick={() => onClick?.(task)}
-            className="group/card relative flex flex-col bg-white rounded-lg border border-slate-200 p-3 shadow-card-subtle hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 cursor-grab active:cursor-grabbing"
+            onMouseMove={handleMouseMove}
+            className="group/card relative flex flex-col bg-white rounded-2xl border border-slate-100 p-4 shadow-sm transition-all cursor-grab active:cursor-grabbing overflow-hidden"
+            whileHover={{
+                y: -4,
+                boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+            }}
+            whileTap={{ scale: 0.98 }}
         >
+            {/* Glow Overlay */}
+            <motion.div
+                className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300 group-hover/card:opacity-100"
+                style={{
+                    background: useMotionTemplate`
+                        radial-gradient(
+                        650px circle at ${mouseX}px ${mouseY}px,
+                        rgba(99, 102, 241, 0.10),
+                        transparent 80%
+                        )
+                    `,
+                }}
+            />
+
             {/* Top Row: ID and Priority */}
-            <div className="flex items-start justify-between mb-2">
-                <span className="text-xs font-medium text-slate-400">
-                    {/* Mock ID generation or use ID substring */}
+            <div className="flex items-start justify-between mb-3 relative z-10">
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider">
                     SW-{task.id.slice(0, 3).toUpperCase()}
                 </span>
                 <div
-                    className={`size-2 rounded-full ${task.priority === 'HIGH' ? 'bg-red-500' :
-                        task.priority === 'MEDIUM' ? 'bg-orange-400' :
-                            'bg-slate-300'
+                    className={`h-2 w-2 rounded-full ${task.priority === 'HIGH' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]' :
+                        task.priority === 'MEDIUM' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' :
+                            'bg-emerald-400'
                         }`}
-                    title={task.priority}
+                    title={`Priority: ${task.priority}`}
                 ></div>
             </div>
 
             {/* Title */}
-            <h3 className="text-sm font-medium text-slate-900 leading-snug mb-3">
+            <h3 className="text-sm font-semibold text-slate-800 leading-relaxed mb-4 relative z-10">
                 {task.title}
             </h3>
 
             {/* Thumbnail */}
             {task.media_urls && task.media_urls.length > 0 && (
-                <div className="mb-3 h-24 rounded bg-slate-100 overflow-hidden relative">
-                    <img src={task.media_urls[0]} alt="Attachment" className="absolute inset-0 h-full w-full object-cover opacity-90" />
+                <div className="mb-4 h-32 rounded-xl bg-slate-50 overflow-hidden relative group-hover/card:shadow-md transition-all">
+                    <img src={task.media_urls[0]} alt="Attachment" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-110" />
                 </div>
             )}
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50 relative z-10">
                 {/* Tag & Due Date */}
                 <div className="flex items-center gap-2 flex-wrap max-w-[70%]">
                     {task.labels && task.labels.length > 0 ? (
                         task.labels.slice(0, 2).map((label, idx) => (
-                            <span key={idx} className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[80px]">
+                            <span key={idx} className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100/50 truncate max-w-[80px]">
                                 {label}
                             </span>
                         ))
                     ) : (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-50 text-slate-500 border border-slate-100">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 text-slate-400 border border-slate-100">
                             Task
-                        </span>
-                    )}
-                    {task.due_date && (
-                        <span className={`flex items-center gap-1 text-[10px] font-medium ${new Date(task.due_date) < new Date() ? 'text-red-500' : 'text-slate-400'}`}>
-                            <span className="material-symbols-outlined text-[12px]">calendar_today</span>
-                            {new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </span>
                     )}
                 </div>
 
                 {/* Right Side: Avatars, Icons, Delete */}
                 <div className="flex items-center gap-3">
-                    {/* Avatars */}
-                    <div className="flex items-center -space-x-1.5">
-                        <div className="h-5 w-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[9px] font-bold border border-white">
-                            {task.created_by.charAt(0).toUpperCase()}
-                        </div>
-                    </div>
+                    {task.due_date && (
+                        <span className={`flex items-center gap-1 text-[10px] font-bold ${new Date(task.due_date) < new Date() ? 'text-rose-500' : 'text-slate-400'}`}>
+                            {new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                    )}
 
-                    {/* Icons */}
-                    <div className="flex items-center gap-2 text-slate-400">
-                        {task.media_urls && task.media_urls.length > 0 && (
-                            <div className="flex items-center gap-0.5">
-                                <span className="material-symbols-outlined text-[14px]">attachment</span>
-                                <span className="text-[10px] font-medium">{task.media_urls.length}</span>
-                            </div>
-                        )}
-                        {/* Mock chat count */}
-                        {/* <div className="flex items-center gap-0.5">
-                            <span className="material-symbols-outlined text-[14px]">chat_bubble</span>
-                            <span className="text-[10px] font-medium">0</span>
-                        </div> */}
+                    {/* Avatars */}
+                    <div className="h-6 w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-sm ring-1 ring-slate-100">
+                        {task.created_by.charAt(0).toUpperCase()}
                     </div>
 
                     {onDelete && (
@@ -145,13 +159,13 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
                                 e.stopPropagation();
                                 onDelete(task.id);
                             }}
-                            className="opacity-0 group-hover/card:opacity-100 p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded transition-all"
+                            className="opacity-0 group-hover/card:opacity-100 p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-all"
                         >
-                            <Trash2 size={12} />
+                            <Trash2 size={14} />
                         </button>
                     )}
                 </div>
             </div>
-        </div>
+        </motion.div>
     )
 }

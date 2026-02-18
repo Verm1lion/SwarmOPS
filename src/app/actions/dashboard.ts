@@ -95,7 +95,7 @@ export async function getDashboardData() {
         created_at: task.created_at
     }))
 
-    // 5. Weekly Velocity (Tasks created in last 7 days)
+    // 5. Weekly Velocity (Tasks COMPLETED in last 7 days)
     const today = new Date()
     const last7Days = Array.from({ length: 7 }, (_, i) => {
         const d = new Date()
@@ -104,10 +104,28 @@ export async function getDashboardData() {
     }).reverse()
 
     const velocityData = last7Days.map(date => {
-        const count = tasks.filter(t => t.created_at.startsWith(date)).length
+        // Count tasks moved to DONE on this date (using updated_at as proxy for completion time)
+        const count = tasks.filter(t =>
+            t.column_id === 'DONE' &&
+            t.updated_at &&
+            t.updated_at.startsWith(date)
+        ).length
         const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)
         return { day: dayName, count, date }
     })
+
+    // Calculate Average Velocity (Daily)
+    const totalVelocity = velocityData.reduce((acc, curr) => acc + curr.count, 0)
+    const averageVelocity = totalVelocity / 7
+
+    // 6. Estimated Completion Time (ETC)
+    const pendingTasks = tasks.filter(t => t.column_id !== 'DONE').length
+    let etcDays = 0
+    if (averageVelocity > 0) {
+        etcDays = Math.ceil(pendingTasks / averageVelocity)
+    } else if (pendingTasks > 0) {
+        etcDays = 999 // Infinite/Unknown if 0 velocity
+    }
 
     // 6. Upcoming Deadlines (Mocked for now as 'due_date' might not exist, but prepared)
     // If 'due_date' exists in tasks, use it. Otherwise mock a few if tasks exist.
@@ -135,11 +153,13 @@ export async function getDashboardData() {
         stats: {
             activeProjects: activeProjectsCount,
             efficiency: efficiencyScore,
-            teamLoad, // Will be displayed as 2/10
-            totalTasks
+            teamLoad,
+            totalTasks,
+            etcDays,
+            averageVelocity
         },
         recentActivity,
         velocity: velocityData,
-        upcomingDeadlines // Pass this new data
+        upcomingDeadlines
     }
 }

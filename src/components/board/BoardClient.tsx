@@ -130,6 +130,19 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                     newColumnId = overTask.column_id
                 }
             }
+
+            // Trigger Confetti if moved to DONE and wasn't there before
+            if (newColumnId === 'DONE' && activeTask.column_id !== 'DONE') {
+                import('canvas-confetti').then((confetti) => {
+                    confetti.default({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#6366f1', '#818cf8', '#a5b4fc', '#ffffff'] // Indigo shades
+                    })
+                })
+            }
+
             updateTaskColumn(activeId, newColumnId, projectId)
         }
     }

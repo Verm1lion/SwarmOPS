@@ -4,7 +4,7 @@ import { createProject, deleteProject } from '@/app/actions/project'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { RecentActivity, UpcomingDeadlines, WeeklyVelocity } from './StatsTiles'
+import { RecentActivity, UpcomingDeadlines, WeeklyVelocity, CompletionRateCard, EstimatedCompletionCard } from './StatsTiles'
 import { Sidebar } from '../Sidebar'
 
 function SubmitButton() {
@@ -30,6 +30,8 @@ interface DashboardClientProps {
         efficiency: number
         teamLoad: number
         totalTasks: number
+        averageVelocity?: number
+        etcDays?: number
     }
     recentActivity?: any[]
     velocity?: any[]
@@ -266,9 +268,16 @@ export default function DashboardClient({
                             </div>
                         )}
 
-                        {/* Widgets */}
+                        {/* Widgets - New 3D Stats */}
                         <UpcomingDeadlines deadlines={upcomingDeadlines} />
-                        <WeeklyVelocity data={velocity} />
+
+                        <WeeklyVelocity
+                            data={velocity}
+                            averageVelocity={stats.averageVelocity || 0}
+                        />
+
+                        <CompletionRateCard efficiency={stats.efficiency} />
+                        <EstimatedCompletionCard etcDays={stats.etcDays || 0} />
                         <div className="col-span-1 lg:col-span-4 xl:col-span-4">
                             <RecentActivity activities={recentActivity} />
                         </div>

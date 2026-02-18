@@ -1,49 +1,104 @@
 'use client'
 
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+import { motion } from 'framer-motion'
 
-export function WeeklyVelocity({ data }: { data: any[] }) {
-    // data: [{ day: 'M', count: 5, date: '...' }, ...]
-    // Find max count to normalize height
-    const maxCount = Math.max(...data.map(d => d.count), 1) // Avoid divide by zero
+// Dynamically import 3D components with no SSR to avoid Canvas issues
+const VelocityChart3D = dynamic(() => import('@/components/dashboard/3d/VelocityChart3D'), { ssr: false })
+const CompletionRing3D = dynamic(() => import('@/components/dashboard/3d/CompletionRing3D'), { ssr: false })
 
+import CountUp from 'react-countup'
+
+// ... existing imports
+
+export function WeeklyVelocity({ data, averageVelocity }: { data: any[], averageVelocity: number }) {
     return (
-        <div className="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 flex flex-col justify-between h-auto">
-            <div className="flex items-center justify-between mb-4">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 flex flex-col justify-between h-[300px]"
+        >
+            <div className="flex items-center justify-between mb-2">
                 <div>
-                    <h3 className="font-bold text-gray-900">Weekly Velocity</h3>
-                    <p className="text-xs text-gray-500">Tasks created over last 7 days</p>
+                    <h3 className="font-bold text-gray-900">True Velocity</h3>
+                    <p className="text-xs text-gray-500">Tasks completed (DONE) in last 7 days</p>
                 </div>
-                <select className="rounded-lg border-gray-200 bg-gray-50 text-xs font-medium text-gray-600 focus:border-primary focus:ring-primary outline-none py-1">
-                    <option>This Week</option>
-                    <option>Last Week</option>
-                </select>
+                <div className="text-right">
+                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Avg Speed</p>
+                    <p className="text-lg font-bold text-indigo-600">
+                        <CountUp end={averageVelocity} decimals={1} duration={2} /> <span className="text-xs text-gray-400 font-normal">tasks/day</span>
+                    </p>
+                </div>
             </div>
-            {/* CSS-only Bar Chart */}
-            <div className="flex h-32 items-end justify-between gap-2 px-2">
-                {data.map((bar, i) => {
-                    const heightPercentage = Math.round((bar.count / maxCount) * 85) + 15 // min 15% height
-                    const isToday = i === data.length - 1 // Last item is today
 
-                    return (
-                        <div key={i} className="group relative flex w-full flex-col items-center gap-2 h-full justify-end">
-                            <div
-                                className={`w-full rounded-t-sm transition-all shadow-sm ${isToday ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-gray-100 group-hover:bg-primary/20'}`}
-                                style={{ height: `${heightPercentage}%` }}
-                                title={`${bar.count} tasks`}
-                            ></div>
-                            <span className={`text-[10px] ${isToday ? 'font-bold text-primary' : 'text-gray-400'}`}>{bar.day}</span>
-                        </div>
-                    )
-                })}
+            <div className="flex-1 w-full relative">
+                <VelocityChart3D data={data} />
             </div>
-        </div>
+        </motion.div>
+    )
+}
+
+// ... CompletionRateCard
+export function CompletionRateCard({ efficiency }: { efficiency: number }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="col-span-1 lg:col-span-1 xl:col-span-1 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 flex flex-col items-center justify-between h-[300px]"
+        >
+            <h3 className="font-bold text-gray-900 w-full text-left">Completion Rate</h3>
+            <div className="flex-1 w-full relative">
+                <CompletionRing3D progress={efficiency} />
+            </div>
+            <p className="text-xs text-center text-gray-400">Total tasks vs Completed</p>
+        </motion.div>
+    )
+}
+
+export function EstimatedCompletionCard({ etcDays }: { etcDays: number }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="col-span-1 lg:col-span-1 xl:col-span-1 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 flex flex-col justify-between h-[300px]"
+        >
+            <h3 className="font-bold text-gray-900">Est. Completion</h3>
+
+            <div className="flex flex-1 flex-col items-center justify-center">
+                {etcDays === 999 ? (
+                    <div className="text-center">
+                        <span className="material-symbols-outlined text-[48px] text-gray-300 mb-2">hourglass_disabled</span>
+                        <p className="text-sm text-gray-500">Not enough data</p>
+                    </div>
+                ) : (
+                    <div className="text-center">
+                        <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-600 font-mono tracking-tighter">
+                            <CountUp end={etcDays} duration={2.5} />
+                        </span>
+                        <p className="text-sm font-bold text-gray-600 mt-2 uppercase tracking-widest">DAYS</p>
+                    </div>
+                )}
+            </div>
+
+            <div className="w-full bg-gray-50 rounded-lg p-3 text-center">
+                <p className="text-xs text-gray-400">Based on current team velocity</p>
+            </div>
+        </motion.div>
     )
 }
 
 export function RecentActivity({ activities }: { activities: any[] }) {
     return (
-        <div className="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 h-auto">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 h-auto"
+        >
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">Recent Activity</h3>
                 <Link href="#" className="text-xs font-medium text-primary hover:underline">View All</Link>
@@ -63,20 +118,25 @@ export function RecentActivity({ activities }: { activities: any[] }) {
                     ))
                 )}
             </div>
-        </div>
+        </motion.div>
     )
 }
 
 export function UpcomingDeadlines({ deadlines }: { deadlines: any[] }) {
     return (
-        <div className="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 h-auto">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 h-auto"
+        >
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">Upcoming Deadlines</h3>
                 <Link href="#" className="text-xs font-medium text-primary hover:underline">View All</Link>
             </div>
             <div className="flex flex-col gap-3">
                 {deadlines && deadlines.length > 0 ? (
-                    deadlines.map((deadline) => (
+                    deadlines.map((deadline: any) => (
                         <div key={deadline.id} className="group flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:border-primary/20 hover:bg-white">
                             <div className={`flex h-10 w-10 flex-none items-center justify-center rounded-lg ${deadline.priority === 'High' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-primary'}`}>
                                 <span className="material-symbols-outlined text-[20px]">event</span>
@@ -97,6 +157,6 @@ export function UpcomingDeadlines({ deadlines }: { deadlines: any[] }) {
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     )
 }
