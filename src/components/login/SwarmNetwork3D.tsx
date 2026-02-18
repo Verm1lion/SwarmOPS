@@ -158,25 +158,55 @@ function FloatingParticles({ count = 300 }) {
     )
 }
 
-export default function SwarmNetwork3D() {
+function IntroCamera({ onIntroComplete, startAnimation }: { onIntroComplete?: () => void, startAnimation: boolean }) {
+    useFrame((state) => {
+        // Target Z position is 15 (where we want to end up)
+        const targetZ = 15
+        const currentZ = state.camera.position.z
+
+        if (!startAnimation) {
+            // Hold at start position if not started
+            // slightly float the camera for "alive" feel even when waiting
+            const time = state.clock.getElapsedTime()
+            state.camera.position.z = 100 + Math.sin(time * 0.5) * 2
+            return
+        }
+
+        // Smoothly interpolate camera position
+        // The higher the lerp factor (0.02), the faster it settles
+        if (Math.abs(currentZ - targetZ) > 0.1) {
+            // Speed up the lerp for a "Hyperdrive" burst effect once started
+            state.camera.position.z = THREE.MathUtils.lerp(currentZ, targetZ, 0.04)
+        } else {
+            // Snap to exact position and notify completion
+            if (currentZ !== targetZ) {
+                state.camera.position.z = targetZ
+                if (onIntroComplete) onIntroComplete()
+            }
+        }
+    })
+    return null
+}
+
+export default function SwarmNetwork3D({ onIntroComplete, startAnimation = true }: { onIntroComplete?: () => void, startAnimation?: boolean }) {
     return (
         <div className="absolute inset-0 z-0 bg-slate-950">
             {/* Deep Space Gradient */}
             <div className="absolute inset-0 bg-radial-gradient from-indigo-900/20 via-slate-950/80 to-slate-950 z-10 pointer-events-none" />
 
-            <Canvas camera={{ position: [0, 0, 15], fov: 60 }}>
+            {/* Initial Camera Position at Z=100 for the "Zoom In" effect */}
+            <Canvas camera={{ position: [0, 0, 100], fov: 60 }}>
                 <color attach="background" args={['#020617']} /> {/* Slate-950 */}
-                <fog attach="fog" args={['#020617', 10, 25]} />
+                <fog attach="fog" args={['#020617', 10, 40]} /> {/* Adjustable fog for depth */}
 
                 <ambientLight intensity={0.5} />
                 <pointLight position={[10, 10, 10]} intensity={1} color="#818cf8" />
 
                 <NetworkGraph />
                 <FloatingParticles />
-                <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={1} />
+                <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={2} />
 
-                {/* Auto Rotate controls for idle animation */}
-                {/* <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} /> */}
+                <IntroCamera onIntroComplete={onIntroComplete} startAnimation={startAnimation} />
             </Canvas>
         </div>
     )
