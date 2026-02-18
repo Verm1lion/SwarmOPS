@@ -76,7 +76,7 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
             {...listeners}
             onClick={() => onClick?.(task)}
             onMouseMove={handleMouseMove}
-            className="group/card relative flex flex-col bg-white rounded-2xl border border-slate-100 p-4 shadow-sm transition-all cursor-grab active:cursor-grabbing overflow-hidden"
+            className="group/card relative flex flex-col bg-white rounded-2xl border border-slate-100 p-3 shadow-sm transition-all cursor-grab active:cursor-grabbing overflow-hidden h-[150px] shrink-0"
             whileHover={{
                 y: -4,
                 boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
@@ -98,33 +98,34 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
             />
 
             {/* Top Row: ID and Priority */}
-            <div className="flex items-start justify-between mb-3 relative z-10">
+            <div className="flex items-start justify-between mb-2 relative z-10">
                 <span className="text-[10px] font-bold text-slate-400 tracking-wider">
                     SW-{task.id.slice(0, 3).toUpperCase()}
                 </span>
                 <div
-                    className={`h-2 w-2 rounded-full ${task.priority === 'HIGH' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]' :
-                        task.priority === 'MEDIUM' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' :
-                            'bg-emerald-400'
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold border ${task.priority === 'HIGH' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                        task.priority === 'MEDIUM' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                            'bg-emerald-50 text-emerald-600 border-emerald-100'
                         }`}
-                    title={`Priority: ${task.priority}`}
-                ></div>
+                >
+                    {task.priority === 'HIGH' ? 'High' : task.priority === 'MEDIUM' ? 'Med' : 'Low'}
+                </div>
             </div>
 
             {/* Title */}
-            <h3 className="text-sm font-semibold text-slate-800 leading-relaxed mb-4 relative z-10">
+            <h3 className="text-sm font-semibold text-slate-800 leading-relaxed mb-2 relative z-10 line-clamp-2">
                 {task.title}
             </h3>
 
             {/* Thumbnail */}
             {task.media_urls && task.media_urls.length > 0 && (
-                <div className="mb-4 h-32 rounded-xl bg-slate-50 overflow-hidden relative group-hover/card:shadow-md transition-all">
+                <div className="mb-2 h-20 rounded-xl bg-slate-50 overflow-hidden relative group-hover/card:shadow-md transition-all">
                     <img src={task.media_urls[0]} alt="Attachment" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-110" />
                 </div>
             )}
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50 relative z-10">
+            <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50 relative z-10">
                 {/* Tag & Due Date */}
                 <div className="flex items-center gap-2 flex-wrap max-w-[70%]">
                     {task.labels && task.labels.length > 0 ? (

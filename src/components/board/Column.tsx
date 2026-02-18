@@ -56,8 +56,8 @@ export function Column({ column, tasks, onDeleteTask, projectId, currentUser, on
                 </button>
             </div>
 
-            {/* Task List */}
-            <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 pb-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            {/* Task List - Restricted height to approx 4 tasks per user request */}
+            <div className="flex flex-col gap-3 overflow-y-auto px-3 pb-4 max-h-[580px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 transition-colors">
                 <SortableContext items={taskIds}>
                     {tasks.map((task) => (
                         <TaskCard

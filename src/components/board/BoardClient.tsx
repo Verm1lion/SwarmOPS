@@ -208,6 +208,7 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                 {/* Board Content */}
                 <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
                     <DndContext
+                        id="board-dnd-context"
                         sensors={sensors}
                         collisionDetection={closestCorners}
                         onDragStart={handleDragStart}
