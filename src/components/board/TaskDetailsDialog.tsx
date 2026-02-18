@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/utils/supabase/client'
 import { createComment, getComments } from '@/app/actions/comment'
+import { uploadFile, addTaskAttachment } from '@/app/actions/task'
 import { v4 as uuidv4 } from 'uuid'
 import { Task } from './TaskCard'
 
@@ -76,18 +77,38 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
         setUploading(true)
 
         try {
-            // In a real app we would update the task's media_urls array via a server action here.
-            // But for now, let's just upload to bucket and alert (as we need a specific updateTask action for media)
-            // Or, we can just say "Attachment upload logic to be implemented fully with updateTask"
-            // Actually, the user requirement is "Uploads: Verify file upload to Supabase Storage and display on card."
-            // And "Task Details: Rich modal with attachments/comments".
-            // We should allow adding attachments.
-            // I need an updateTaskAttachments action.
-            // Let's assume for this step we focus on comments and viewing existing attachments.
-            // I'll add the UI for upload but maybe hold off on logic or implement a quick generic update.
-            alert("Attachment upload from details view coming soon. Use 'New Task' to add files for now.")
+            for (const file of files) {
+                const fileExt = file.name.split('.').pop()
+                const fileName = `${uuidv4()}.${fileExt}`
+                const filePath = `${projectId}/${fileName}`
+
+                const uploadFormData = new FormData()
+                uploadFormData.append('file', file)
+                uploadFormData.append('path', filePath)
+
+                const uploadResult = await uploadFile(uploadFormData)
+
+                if (uploadResult.error || !uploadResult.url) {
+                    console.error('Upload Error:', uploadResult.error)
+                    alert('Dosya yüklenirken hata oluştu: ' + file.name)
+                    continue
+                }
+
+                const attachResult = await addTaskAttachment(task.id, uploadResult.url, task.media_urls || [], projectId)
+
+                if (attachResult.error) {
+                    console.error('Attach Error:', attachResult.error)
+                    alert('Dosya karta eklenemedi.')
+                } else {
+                    // Update local task state temporarily so user sees it immediately if possible, 
+                    // otherwise router.refresh() might be needed but is slow.
+                    // Ideally we have an onTaskUpdate prop.
+                    window.location.reload() // Quick fix to show changes since we rely on server data
+                }
+            }
         } catch (error) {
             console.error(error)
+            alert('Beklenmedik bir hata oluştu.')
         } finally {
             setUploading(false)
         }
@@ -117,17 +138,47 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                 <div className="flex flex-1 overflow-hidden">
                     {/* Main Content (Left) */}
                     <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-gray-200">
-                        <h1 className="text-2xl font-bold text-gray-900 mb-6">{task.title}</h1>
+                        <h1 className="text-xl font-bold text-gray-900 mb-4">{task.title}</h1>
 
-                        <div className="mb-8">
-                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h3>
-                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        <div className="mb-6 grid grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Start Date</h3>
+                                <div className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                                    {task.start_date ? new Date(task.start_date).toLocaleDateString() : 'Not set'}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Due Date</h3>
+                                <div className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                                    {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Labels</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {task.labels && task.labels.length > 0 ? (
+                                    task.labels.map((label, index) => (
+                                        <span key={index} className="px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100">
+                                            {label}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="text-sm text-gray-400 italic">No labels</span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h3>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                                 {task.description || 'No description provided.'}
                             </p>
                         </div>
 
                         <div className="mb-8">
-                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center justify-between">
                                 <span>Attachments</span>
                                 <label className="cursor-pointer text-stitch-blue hover:underline text-xs capitalize flex items-center gap-1">
                                     <span className="material-symbols-outlined text-[14px]">add</span>
@@ -149,8 +200,8 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                                     ))}
                                 </div>
                             ) : (
-                                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                                    <p className="text-sm text-gray-400">No attachments yet.</p>
+                                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center">
+                                    <p className="text-xs text-gray-400">No attachments yet.</p>
                                 </div>
                             )}
                         </div>

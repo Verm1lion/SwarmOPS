@@ -13,6 +13,9 @@ export type Task = {
     priority: 'LOW' | 'MEDIUM' | 'HIGH'
     created_by: string
     media_urls?: string[]
+    start_date?: string
+    due_date?: string
+    labels?: string[]
 }
 
 interface TaskCardProps {
@@ -70,8 +73,8 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
                 </span>
                 <div
                     className={`size-2 rounded-full ${task.priority === 'HIGH' ? 'bg-red-500' :
-                            task.priority === 'MEDIUM' ? 'bg-orange-400' :
-                                'bg-slate-300'
+                        task.priority === 'MEDIUM' ? 'bg-orange-400' :
+                            'bg-slate-300'
                         }`}
                     title={task.priority}
                 ></div>
@@ -91,11 +94,25 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
 
             {/* Footer */}
             <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
-                {/* Tag */}
-                <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100">
-                        Task
-                    </span>
+                {/* Tag & Due Date */}
+                <div className="flex items-center gap-2 flex-wrap max-w-[70%]">
+                    {task.labels && task.labels.length > 0 ? (
+                        task.labels.slice(0, 2).map((label, idx) => (
+                            <span key={idx} className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[80px]">
+                                {label}
+                            </span>
+                        ))
+                    ) : (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-50 text-slate-500 border border-slate-100">
+                            Task
+                        </span>
+                    )}
+                    {task.due_date && (
+                        <span className={`flex items-center gap-1 text-[10px] font-medium ${new Date(task.due_date) < new Date() ? 'text-red-500' : 'text-slate-400'}`}>
+                            <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                            {new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                    )}
                 </div>
 
                 {/* Right Side: Avatars, Icons, Delete */}

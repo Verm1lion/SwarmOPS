@@ -20,7 +20,10 @@ create table tasks (
   column_id text not null check (column_id in ('IDEA', 'TODO', 'IN_PROGRESS', 'DONE')),
   priority text check (priority in ('LOW', 'MEDIUM', 'HIGH')),
   created_by text not null, -- Name of the user/guest
-  media_urls text[] -- Array of file URLs
+  media_urls text[], -- Array of file URLs
+  start_date timestamp with time zone,
+  due_date timestamp with time zone,
+  labels text[]
 );
 
 -- Comments Table

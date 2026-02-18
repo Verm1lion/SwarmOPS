@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { createTask } from '@/app/actions/task'
+import { createTask, uploadFile } from '@/app/actions/task'
 import { Plus } from 'lucide-react'
-import { createClient } from '@/utils/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 
 interface NewTaskDialogProps {
@@ -24,6 +23,17 @@ export function NewTaskDialog({ projectId, currentUser, onTaskCreated, variant =
     // ... handle submit ...
     // (Existing handleSubmit logic is fine, just need to update usage of defaultColumnId in the form)
 
+    // Handle ESC key to close
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsOpen(false)
+        }
+        if (isOpen) {
+            window.addEventListener('keydown', handleEsc)
+        }
+        return () => window.removeEventListener('keydown', handleEsc)
+    }, [isOpen])
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setLoading(true)
@@ -31,9 +41,6 @@ export function NewTaskDialog({ projectId, currentUser, onTaskCreated, variant =
         try {
             const form = e.currentTarget
             const formData = new FormData(form)
-
-            // Upload files first
-            const supabase = createClient()
             const uploadedUrls: string[] = []
 
             if (attachments.length > 0) {
@@ -43,27 +50,25 @@ export function NewTaskDialog({ projectId, currentUser, onTaskCreated, variant =
                     const fileName = `${uuidv4()}.${fileExt}`
                     const filePath = `${projectId}/${fileName}`
 
-                    const { error: uploadError } = await supabase.storage
-                        .from('task-attachments')
-                        .upload(filePath, file)
+                    const uploadFormData = new FormData()
+                    uploadFormData.append('file', file)
+                    uploadFormData.append('path', filePath)
 
-                    if (uploadError) {
-                        console.error('Upload Error:', uploadError)
+                    const uploadResult = await uploadFile(uploadFormData)
+
+                    if (uploadResult.error || !uploadResult.url) {
+                        console.error('Upload Error:', uploadResult.error)
                         alert('Dosya yüklenirken hata oluştu: ' + file.name)
                         continue
                     }
 
-                    const { data: { publicUrl } } = supabase.storage
-                        .from('task-attachments')
-                        .getPublicUrl(filePath)
-
-                    uploadedUrls.push(publicUrl)
+                    uploadedUrls.push(uploadResult.url)
                 }
                 setUploading(false)
             }
 
             // Append each URL to formData
-            uploadedUrls.forEach(url => {
+            uploadedUrls.forEach((url: string) => {
                 formData.append('media_urls', url)
             })
 
@@ -117,7 +122,7 @@ export function NewTaskDialog({ projectId, currentUser, onTaskCreated, variant =
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-gray-200 scale-100 animate-in zoom-in-95 duration-200">
+            <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-gray-200 scale-100 animate-in zoom-in-95 duration-200 scrollbar-thin scrollbar-thumb-gray-200">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-gray-900">Create New Task</h2>
                     <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -125,59 +130,96 @@ export function NewTaskDialog({ projectId, currentUser, onTaskCreated, variant =
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1.5">Title</label>
                         <input
                             name="title"
                             required
-                            className="w-full rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:border-stitch-blue focus:ring-stitch-blue transition-all"
+                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-stitch-blue focus:bg-white focus:ring-1 focus:ring-stitch-blue transition-all placeholder:text-gray-400"
                             placeholder="e.g. Redesign Homepage"
                             autoFocus
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1.5">Description</label>
                         <textarea
                             name="description"
                             rows={3}
-                            className="w-full rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:border-stitch-blue focus:ring-stitch-blue resize-none transition-all"
+                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-stitch-blue focus:bg-white focus:ring-1 focus:ring-stitch-blue resize-none transition-all placeholder:text-gray-400"
                             placeholder="Add details..."
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Column</label>
-                            <select
-                                name="columnId"
-                                defaultValue={defaultColumnId || "IDEA"}
-                                className="w-full rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:border-stitch-blue focus:ring-stitch-blue transition-all"
-                            >
-                                <option value="IDEA">Idea</option>
-                                <option value="TODO">To Do</option>
-                                <option value="IN_PROGRESS">In Progress</option>
-                                <option value="DONE">Done</option>
-                            </select>
-
+                            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Column</label>
+                            <div className="relative">
+                                <select
+                                    name="columnId"
+                                    defaultValue={defaultColumnId || "IDEA"}
+                                    className="w-full appearance-none rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-stitch-blue focus:bg-white focus:ring-1 focus:ring-stitch-blue transition-all cursor-pointer"
+                                >
+                                    <option value="IDEA">Idea</option>
+                                    <option value="TODO">To Do</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                    <option value="DONE">Done</option>
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <span className="material-symbols-outlined text-[20px]">expand_more</span>
+                                </div>
+                            </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                            <select
-                                name="priority"
-                                className="w-full rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:border-stitch-blue focus:ring-stitch-blue transition-all"
-                            >
-                                <option value="LOW">Low</option>
-                                <option value="MEDIUM">Medium</option>
-                                <option value="HIGH">High</option>
-                            </select>
+                            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Priority</label>
+                            <div className="relative">
+                                <select
+                                    name="priority"
+                                    className="w-full appearance-none rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-stitch-blue focus:bg-white focus:ring-1 focus:ring-stitch-blue transition-all cursor-pointer"
+                                >
+                                    <option value="LOW">Low</option>
+                                    <option value="MEDIUM">Medium</option>
+                                    <option value="HIGH">High</option>
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <span className="material-symbols-outlined text-[20px]">expand_more</span>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Start Date</label>
+                            <input
+                                type="date"
+                                name="startDate"
+                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-stitch-blue focus:bg-white focus:ring-1 focus:ring-stitch-blue transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Due Date</label>
+                            <input
+                                type="date"
+                                name="dueDate"
+                                className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-stitch-blue focus:bg-white focus:ring-1 focus:ring-stitch-blue transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1.5">Labels</label>
+                        <input
+                            name="labels"
+                            placeholder="e.g. Bug, Feature, Backend (comma separated)"
+                            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-stitch-blue focus:bg-white focus:ring-1 focus:ring-stitch-blue transition-all placeholder:text-gray-400"
+                        />
                     </div>
 
                     {/* File Upload */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Attachments</label>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1.5">Attachments</label>
                         <div className="flex items-center justify-center w-full">
                             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">

@@ -151,7 +151,7 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                         <div>
                             <div className="flex items-center gap-2">
                                 <h1 className="text-lg font-bold tracking-tight text-slate-900">{projectName}</h1>
-                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">Oct 24 - Nov 7</span>
+                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">16 Şubat - 16 Mart</span>
                             </div>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                         onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                     >
-                        <div className="flex h-full gap-6 min-w-max">
+                        <div className="flex h-full gap-6 min-w-max items-start">
                             {COLUMNS.map((col) => (
                                 <Column
                                     key={col.id}

@@ -34,32 +34,30 @@ export function Column({ column, tasks, onDeleteTask, projectId, currentUser, on
     return (
         <div
             ref={setNodeRef}
-            className="flex h-full w-[300px] min-w-[300px] flex-col group"
+            className="flex max-h-full w-[300px] min-w-[300px] flex-col group rounded-2xl bg-gray-50/50 border border-gray-200/60"
         >
             {/* Column Header */}
-            <div className="mb-4 flex items-center justify-between px-1">
+            <div className="mb-2 flex items-center justify-between p-4 pb-2">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-slate-800 uppercase tracking-wide">
+                    <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                         {column.title}
                     </span>
-                    <span className="flex items-center justify-center size-5 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold">
+                    <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-gray-200/50 text-gray-600 text-[11px] font-bold">
                         {tasks.length}
                     </span>
                 </div>
                 <button
                     onClick={() => {
                         // Ideally checking for "add task" permission here or triggering dialog
-                        // Since dialog is at bottom, this button might be redundant or could open same dialog
-                        // For now just visual match or could hook to dialog
                     }}
-                    className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-600 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-white text-gray-400 hover:text-gray-700 transition-all shadow-sm"
                 >
-                    <span className="material-symbols-outlined text-[20px]">add</span>
+                    <span className="material-symbols-outlined text-[18px]">add</span>
                 </button>
             </div>
 
             {/* Task List */}
-            <div className="flex flex-1 flex-col gap-3 overflow-y-auto pb-4 no-scrollbar">
+            <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 pb-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
                 <SortableContext items={taskIds}>
                     {tasks.map((task) => (
                         <TaskCard
