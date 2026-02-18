@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Swarm Track Bento Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#16439c",
+                        "primary-dark": "#0d2b66",
+                        "secondary": "#64748b",
+                        "accent": "#f0f9ff",
+                        "background-light": "#F9FAFB", // Requested very light gray
+                        "background-dark": "#111621",
+                        "charcoal": "#1f2937", // Dark charcoal for sidebar
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem", // Extra large radius for premium feel
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "bento": "0 2px 10px rgba(0, 0, 0, 0.02), 0 10px 30px rgba(0, 0, 0, 0.04)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for ultra-clean look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 font-display antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Slim Sidebar (Dark Charcoal) -->
+<aside class="flex w-20 flex-col items-center border-r border-gray-200 bg-charcoal py-8 transition-all duration-300 ease-in-out z-20 shadow-xl">
+<!-- Logo -->
+<div class="mb-10 flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-[24px]">hive</span>
+</div>
+<!-- Nav Items -->
+<nav class="flex flex-1 flex-col items-center gap-6">
+<a class="group relative flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-white shadow-md transition-all hover:bg-primary hover:text-white" href="#">
+<span class="material-symbols-outlined text-[24px]">grid_view</span>
+<span class="absolute left-14 hidden rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:block group-hover:opacity-100">Dashboard</span>
+</a>
+<a class="group relative flex h-12 w-12 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-white/10 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[24px]">folder_open</span>
+</a>
+<a class="group relative flex h-12 w-12 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-white/10 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[24px]">group</span>
+</a>
+<a class="group relative flex h-12 w-12 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-white/10 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[24px]">calendar_month</span>
+</a>
+</nav>
+<!-- Bottom Actions -->
+<div class="mt-auto flex flex-col items-center gap-6">
+<a class="group relative flex h-12 w-12 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-white/10 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</a>
+<div class="h-10 w-10 overflow-hidden rounded-full border-2 border-gray-600 bg-gray-700 bg-cover bg-center" data-alt="User profile portrait of a man smiling" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDGnXhUZQt3hReNMHHj-DhMPdOVhuhxcyUmFbwcHHfNTcYGw_V9fLWOdpmKmWy6EVqsqlFO89bvFYapibAfnIDzUV-WzKpcz5QqeGbtM_bYywf4x9qsFHDVx1I68763UvItHNTiwioEVFE0RAfDm530V-C4cVe1_PvwYR2JCfKgbnIl5izF1gYJ8Z_DGvufA65nCzX99dJUiSK7eCRkRsU2QZ44eTTywDgYywHd1iFDLYIF44jYatP82ZY8_sIxBvLRs7INYh5SSvZS');"></div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex flex-1 flex-col overflow-hidden bg-background-light">
+<!-- Header -->
+<header class="flex h-20 items-center justify-between px-8 py-4 backdrop-blur-sm">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+<p class="text-sm text-gray-500">Welcome back, Alex</p>
+</div>
+<div class="flex items-center gap-6">
+<!-- Search -->
+<div class="relative hidden w-96 md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="h-11 w-full rounded-xl border-none bg-white py-2 pl-10 pr-4 text-sm text-gray-700 shadow-sm ring-1 ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20" placeholder="Search projects, tasks, or team..." type="text"/>
+</div>
+<!-- Actions -->
+<button class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-600 shadow-sm ring-1 ring-gray-200 hover:text-primary">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute right-[90px] top-7 h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+<button class="flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.02] active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>New Project</span>
+</button>
+</div>
+</header>
+<!-- Bento Grid Content -->
+<div class="flex-1 overflow-y-auto p-8 pt-2">
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-4 xl:grid-cols-4 auto-rows-min pb-10">
+<!-- Stat Card 1: Total Tasks -->
+<div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 transition-all hover:shadow-lg">
+<div class="flex items-start justify-between">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-primary">
+<span class="material-symbols-outlined">assignment</span>
+</div>
+<span class="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 12%
+                            </span>
+</div>
+<div class="mt-4">
+<p class="text-3xl font-bold text-gray-900">124</p>
+<p class="text-sm font-medium text-gray-500">Total Tasks</p>
+</div>
+<!-- Decorative sparkline effect -->
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0 opacity-50"></div>
+</div>
+<!-- Stat Card 2: Efficiency -->
+<div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 transition-all hover:shadow-lg">
+<div class="flex items-start justify-between">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<span class="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 5%
+                            </span>
+</div>
+<div class="mt-4">
+<p class="text-3xl font-bold text-gray-900">94%</p>
+<p class="text-sm font-medium text-gray-500">Efficiency Score</p>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500/0 via-purple-500/40 to-purple-500/0 opacity-50"></div>
+</div>
+<!-- Stat Card 3: Team Load -->
+<div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 transition-all hover:shadow-lg">
+<div class="flex items-start justify-between">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+<span class="material-symbols-outlined">groups</span>
+</div>
+<span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_down</span> 2%
+                            </span>
+</div>
+<div class="mt-4">
+<p class="text-3xl font-bold text-gray-900">8/10</p>
+<p class="text-sm font-medium text-gray-500">Team Load</p>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500/0 via-orange-500/40 to-orange-500/0 opacity-50"></div>
+</div>
+<!-- Team Avatars Tile -->
+<div class="relative flex flex-col justify-center items-center overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100">
+<div class="flex -space-x-3 rtl:space-x-reverse">
+<img alt="Team member smiling" class="h-10 w-10 rounded-full border-2 border-white object-cover" data-alt="Portrait of a female team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJpfdrDtmIhvq36kBhMCjOdxFLpltAvLRheSw06bBMh6_jFfg--kZCywaLoXs_H00GDhTNu0EgM0nUw0XoVpiopX-tGTm5gqPW3WG_Bxh5-P4lIQMJ-uUsRaoe9mrw7oBxOjIeW5aEYD-aCzYu4JW0MlEbhR4nOGQjZp0jnK2Wtf-zlEeAr0QWu5fNDXSLQ5LXWqSPdbmbuKwmq-DM_LXqpvmkRoVot-5nRt2XJc4MLxIklVBx27tGXdbmzeSLsaXxg88d9BuZjzC2"/>
+<img alt="Team member looking serious" class="h-10 w-10 rounded-full border-2 border-white object-cover" data-alt="Portrait of a male team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpLN40xAoNT622LwK1yd7X9cehfdxqS8rlv16OtJyBb81vamfeOYKtu26tKzXkZRMAHQys4GED85TKN_uIqy0RNCj1K5Gj23POqPmRF_UQToQagwLtQolU-vX369_4ut4y-Ewuc1xkQIFIRGH2Fs79-XFnVnNYpimYNxmRH70_e9owpjm5oWB9zTRp9i5naiA3H63KAPzsya9xJyKHFjomFpXukPnENqyXsB9ePFFdBBhshPVFG4zRAaj-Y79xM9sKXMHO43pRHdsB"/>
+<img alt="Team member laughing" class="h-10 w-10 rounded-full border-2 border-white object-cover" data-alt="Portrait of a female team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-nMGksFwE-0eOIu8OJrvNPv_gnIBTdmNgGnoqYC_0YpePo93NEFICbHMguheyEQ5z1fgIVccJOTwokE-vUh4-u4DAPqx6zlISKhvrwdrR0hZmK1vdqZxFnyKmciLuIRBWPOehE0yfa-1N0PG_pEFTTcH_fzKLxeaACZUevi8bpQVInmLs-xJlUReYnJGEuo3hi7AvUG85Va-kvv4wFyCuO9u-cf1vP35hsB5sslXJBKExcoA3I7OoTsbonxIXESOQG7dsoqd1RTxS"/>
+<a class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-100 text-xs font-medium text-gray-600 hover:bg-gray-200" href="#">+5</a>
+</div>
+<p class="mt-3 text-sm text-gray-500">Team Available</p>
+</div>
+<!-- Main Project Card (Large Bento Tile) -->
+<div class="col-span-1 lg:col-span-2 xl:col-span-2 row-span-2 overflow-hidden rounded-2xl bg-white shadow-bento ring-1 ring-gray-100 group">
+<!-- Image Area -->
+<div class="relative h-48 w-full overflow-hidden bg-gray-100">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Abstract fluid blue and purple gradient shapes" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDbk26hO3mwQAjJY5Uj9IMWQfent2l5ZTRs5gw1pGIfNQ8kdZve0jBrC3sfuXtZnG9EDJ-4ZDmJaQgnPRGvaDcvG62U73v52BxjM006ejWCM3ZSgazcPyX_wKc9Cg-hrzqQIFarBDd6AXb_GpGQPmXc-c0MqCjXJvdv_zs1Cqyx9VvOnjXEyxxOX9aMCi_6uq2CAc8Eo-g6gcuLfICaManM_vz2E7JXv8y9ISuIP-P9OlNiRyS3Uxd5pZjpyAIo-bnBLnDpQHkcxJvq');"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-4 left-6">
+<span class="mb-2 inline-block rounded-lg bg-white/20 px-2 py-1 text-xs font-medium text-white backdrop-blur-md">In Progress</span>
+<h2 class="text-2xl font-bold text-white">Project Alpha</h2>
+</div>
+<div class="absolute right-6 top-6 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-800 backdrop-blur-md shadow-sm">
+                                Access Code: SW-204
+                             </div>
+</div>
+<!-- Content Area -->
+<div class="p-6">
+<div class="mb-6 flex items-end justify-between">
+<div>
+<p class="text-sm text-gray-500 mb-1">Sprint Progress</p>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-bold text-gray-900">75%</span>
+<span class="text-sm font-medium text-green-600">+15% this week</span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm text-gray-500">Deadline</p>
+<p class="font-semibold text-gray-900">Oct 24, 2023</p>
+</div>
+</div>
+<!-- Sleek Progress Bar -->
+<div class="mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+<div class="h-full rounded-full bg-primary transition-all duration-1000 ease-out" style="width: 75%"></div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="rounded-xl bg-gray-50 p-4">
+<div class="mb-1 flex items-center gap-2 text-gray-500">
+<span class="material-symbols-outlined text-[18px]">bug_report</span>
+<span class="text-xs font-medium uppercase tracking-wider">Open Issues</span>
+</div>
+<p class="text-xl font-bold text-gray-900">4</p>
+</div>
+<div class="rounded-xl bg-gray-50 p-4">
+<div class="mb-1 flex items-center gap-2 text-gray-500">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="text-xs font-medium uppercase tracking-wider">Completed</span>
+</div>
+<p class="text-xl font-bold text-gray-900">32</p>
+</div>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="text-sm font-medium text-primary hover:text-primary-dark hover:underline">View Project Details →</button>
+</div>
+</div>
+</div>
+<!-- Upcoming Deadlines (Medium Tile) -->
+<div class="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100">
+<div class="mb-4 flex items-center justify-between">
+<h3 class="font-bold text-gray-900">Upcoming Deadlines</h3>
+<button class="rounded-lg p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-600">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- List Item 1 -->
+<div class="group flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:border-primary/20 hover:bg-white">
+<div class="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-blue-100 text-primary">
+<span class="material-symbols-outlined text-[20px]">palette</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="truncate text-sm font-semibold text-gray-900">UI Kit Update</h4>
+<p class="truncate text-xs text-gray-500">Design System • Due Today</p>
+</div>
+<span class="flex-none rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700">Urgent</span>
+</div>
+<!-- List Item 2 -->
+<div class="group flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:border-primary/20 hover:bg-white">
+<div class="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-green-100 text-green-700">
+<span class="material-symbols-outlined text-[20px]">api</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="truncate text-sm font-semibold text-gray-900">API Integration</h4>
+<p class="truncate text-xs text-gray-500">Backend • Tomorrow</p>
+</div>
+<div class="flex -space-x-2">
+<div class="h-6 w-6 rounded-full bg-gray-200 border border-white"></div>
+<div class="h-6 w-6 rounded-full bg-gray-300 border border-white"></div>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="group flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:border-primary/20 hover:bg-white">
+<div class="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-orange-100 text-orange-700">
+<span class="material-symbols-outlined text-[20px]">campaign</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="truncate text-sm font-semibold text-gray-900">Marketing Launch</h4>
+<p class="truncate text-xs text-gray-500">Marketing • In 3 days</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Velocity Graph (Wide Tile) -->
+<div class="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100 flex flex-col justify-between">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h3 class="font-bold text-gray-900">Weekly Velocity</h3>
+<p class="text-xs text-gray-500">Tasks completed over last 7 days</p>
+</div>
+<select class="rounded-lg border-gray-200 bg-gray-50 text-xs font-medium text-gray-600 focus:border-primary focus:ring-primary">
+<option>This Week</option>
+<option>Last Week</option>
+</select>
+</div>
+<!-- CSS-only Bar Chart approximation -->
+<div class="flex h-32 items-end justify-between gap-2 px-2">
+<div class="group relative flex w-full flex-col items-center gap-2">
+<div class="w-full rounded-t-sm bg-gray-100 group-hover:bg-primary/20 transition-all h-[40%]"></div>
+<span class="text-[10px] text-gray-400">M</span>
+</div>
+<div class="group relative flex w-full flex-col items-center gap-2">
+<div class="w-full rounded-t-sm bg-gray-100 group-hover:bg-primary/20 transition-all h-[60%]"></div>
+<span class="text-[10px] text-gray-400">T</span>
+</div>
+<div class="group relative flex w-full flex-col items-center gap-2">
+<div class="w-full rounded-t-sm bg-primary transition-all h-[85%] shadow-lg shadow-primary/20"></div>
+<span class="text-[10px] font-bold text-primary">W</span>
+</div>
+<div class="group relative flex w-full flex-col items-center gap-2">
+<div class="w-full rounded-t-sm bg-gray-100 group-hover:bg-primary/20 transition-all h-[55%]"></div>
+<span class="text-[10px] text-gray-400">T</span>
+</div>
+<div class="group relative flex w-full flex-col items-center gap-2">
+<div class="w-full rounded-t-sm bg-gray-100 group-hover:bg-primary/20 transition-all h-[70%]"></div>
+<span class="text-[10px] text-gray-400">F</span>
+</div>
+<div class="group relative flex w-full flex-col items-center gap-2">
+<div class="w-full rounded-t-sm bg-gray-100 group-hover:bg-primary/20 transition-all h-[30%]"></div>
+<span class="text-[10px] text-gray-400">S</span>
+</div>
+<div class="group relative flex w-full flex-col items-center gap-2">
+<div class="w-full rounded-t-sm bg-gray-100 group-hover:bg-primary/20 transition-all h-[20%]"></div>
+<span class="text-[10px] text-gray-400">S</span>
+</div>
+</div>
+</div>
+<!-- Activity Feed (Vertical Tile) -->
+<div class="col-span-1 lg:col-span-2 xl:col-span-2 overflow-hidden rounded-2xl bg-white p-6 shadow-bento ring-1 ring-gray-100">
+<div class="mb-4 flex items-center justify-between">
+<h3 class="font-bold text-gray-900">Recent Activity</h3>
+<a class="text-xs font-medium text-primary hover:underline" href="#">View All</a>
+</div>
+<div class="relative pl-4 border-l border-gray-100 space-y-6">
+<!-- Item 1 -->
+<div class="relative">
+<span class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-white"></span>
+<p class="text-sm text-gray-900">
+<span class="font-semibold">Sarah Jenkins</span> uploaded 3 new files to <span class="font-medium text-primary">Project Alpha</span>
+</p>
+<p class="mt-1 text-xs text-gray-500">2 hours ago</p>
+</div>
+<!-- Item 2 -->
+<div class="relative">
+<span class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-gray-300 ring-4 ring-white"></span>
+<p class="text-sm text-gray-900">
+<span class="font-semibold">Mike Chen</span> commented on <span class="font-medium text-primary">Task #402</span>
+</p>
+<div class="mt-2 rounded-lg bg-gray-50 p-2 text-xs text-gray-600 italic border border-gray-100">
+                                    "I think we need to revisit the color palette for dark mode..."
+                                </div>
+<p class="mt-1 text-xs text-gray-500">4 hours ago</p>
+</div>
+<!-- Item 3 -->
+<div class="relative">
+<span class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-gray-300 ring-4 ring-white"></span>
+<p class="text-sm text-gray-900">
+<span class="font-semibold">System</span> automatically deployed version 2.4.0
+                                </p>
+<p class="mt-1 text-xs text-gray-500">Yesterday at 5:00 PM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

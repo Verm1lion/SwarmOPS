@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Swarm Track - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1313ec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    backgroundImage: {
+                        'mesh-gradient': 'radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%), radial-gradient(at 0% 50%, hsla(263,91%,35%,1) 0, transparent 50%), radial-gradient(at 100% 50%, hsla(245,67%,25%,1) 0, transparent 50%), radial-gradient(at 0% 100%, hsla(232,23%,15%,1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(242,57%,16%,1) 0, transparent 50%)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom styles for glassmorphism that are tricky with standard Tailwind classes alone */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-input:focus {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: #1313ec;
+            box-shadow: 0 0 15px rgba(19, 19, 236, 0.3);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #ffffff, #a5a6f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Simulating the mesh movement with a large background size */
+        .bg-mesh-animated {
+            background-size: 200% 200%;
+            background-position: 50% 50%;
+        }
+    </style>
+</head>
+<body class="font-display antialiased dark bg-background-dark text-white overflow-hidden">
+<!-- Background Layer -->
+<div class="relative min-h-screen w-full flex flex-col items-center justify-center bg-mesh-gradient bg-mesh-animated">
+<!-- Decorative abstract shapes for depth -->
+<div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/20 blur-[100px] pointer-events-none"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none"></div>
+<!-- Main Content Wrapper -->
+<div class="z-10 w-full max-w-[480px] p-6">
+<!-- Glass Login Card -->
+<div class="glass-card w-full rounded-2xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
+<!-- Inner top shine effect -->
+<div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+<!-- Header -->
+<div class="flex flex-col items-center mb-8">
+<div class="mb-6 p-3 rounded-xl bg-gradient-to-br from-white/10 to-transparent border border-white/5 shadow-inner">
+<span class="material-symbols-outlined text-4xl text-white">hub</span>
+</div>
+<h1 class="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h1>
+<p class="text-white/50 text-sm font-medium">Enter the hive to track your swarm.</p>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-5">
+<!-- Email Input -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-white/80 ml-1" for="email">Email Address</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-white/40 text-[20px] group-focus-within:text-primary transition-colors">mail</span>
+</div>
+<input class="glass-input w-full rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/20 outline-none focus:ring-0" id="email" placeholder="name@swarmtrack.com" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center ml-1">
+<label class="text-sm font-medium text-white/80" for="password">Password</label>
+</div>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-white/40 text-[20px] group-focus-within:text-primary transition-colors">lock</span>
+</div>
+<input class="glass-input w-full rounded-xl py-3.5 pl-11 pr-4 text-white placeholder-white/20 outline-none focus:ring-0" id="password" placeholder="••••••••" type="password"/>
+</div>
+<div class="flex justify-end mt-1">
+<a class="text-xs text-white/60 hover:text-white transition-colors hover:underline" href="#">Forgot password?</a>
+</div>
+</div>
+<!-- Sign In Button -->
+<button class="mt-4 w-full h-12 rounded-xl bg-gradient-to-r from-primary to-[#5b5bf0] hover:to-[#6c6cf5] text-white font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 group">
+<span>Sign In</span>
+<span class="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</button>
+<!-- Divider -->
+<div class="relative my-4">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-white/10"></div>
+</div>
+<div class="relative flex justify-center text-xs">
+<span class="bg-transparent px-2 text-white/40 backdrop-blur-sm rounded-sm">Or continue with</span>
+</div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 h-11 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-white/90 text-sm font-medium" type="button">
+<img alt="Google" class="w-5 h-5" data-alt="Google G logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXXMmc4Uu7c6U1VsAeKoHjKpkpFg69Gs6vp5T0gGmaR7ZQL_QqGkPtz6FV0iqMbH18NlwzJiz9dxzvExXgqFv-ycgPnAo46UQTEJA36cf2UuCaYduTCBUkEtn20qL96P22jWVWqzmMDtzRy2S885tChT5SOn7Jx9tdcXBTwqEEvvManthHU4VOywPDswT0KTnb5JyVhTOdJDfxM1_uPuMGKO-7olrWcm6vipLvrC7OkMZak-KNMxOhdoQET50WT6Fdy3ffJEjfaazY"/>
+<span>Google</span>
+</button>
+<button class="flex items-center justify-center gap-2 h-11 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-white/90 text-sm font-medium" type="button">
+<img alt="GitHub" class="w-5 h-5 invert opacity-90" data-alt="Github Octocat logo white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKhSGjb3mu3YhNBEpYf1PzhuunrzA8J1HUCEDk6Oj9vVx_PWlF6j4Lri58UdTRuKbi2gj2U-HRFWfh0GMPLwTuqyBs555ihceTiaf_3B-23JeNaicBJiEjTI1fe-2NPkLeMERnYY5pNqBbJy07iLE2SRQPolamNgeT3usd-xuBnDBsk4pPIl2nEy7hbAglLGMAdmg-yhxjmUnba4YcO4v4zmQg4oM4s7xZHeHEdP95CGTJJ5qa8qjfyZxJHUuAeCiTc-9SGCovu3JJ"/>
+<span>GitHub</span>
+</button>
+</div>
+</form>
+<!-- Footer -->
+<div class="mt-8 text-center">
+<p class="text-sm text-white/50">
+                        New here? 
+                        <a class="text-white hover:text-primary font-medium transition-colors ml-1" href="#">Create an account</a>
+</p>
+</div>
+</div>
+<!-- Bottom decorative element -->
+<div class="mt-6 flex justify-center items-center gap-6 text-white/20 text-xs">
+<a class="hover:text-white/40 transition-colors" href="#">Privacy</a>
+<span class="w-1 h-1 rounded-full bg-white/10"></span>
+<a class="hover:text-white/40 transition-colors" href="#">Terms</a>
+<span class="w-1 h-1 rounded-full bg-white/10"></span>
+<a class="hover:text-white/40 transition-colors" href="#">Help</a>
+</div>
+</div>
+</div>
+</body></html>

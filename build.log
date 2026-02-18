@@ -1,0 +1,24 @@
+
+> swarm-track@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.5s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/board/Board.tsx:185:26
+Type error: Type '{ key: string; column: { id: string; title: string; }; tasks: Task[]; onDeleteTask: (taskId: string) => Promise<void>; }' is missing the following properties from type 'ColumnProps': projectId, currentUser, onTaskCreated
+
+[0m [90m 183 |[39m                 [33m<[39m[33mdiv[39m className[33m=[39m[32m"flex h-full gap-4 overflow-x-auto pb-4"[39m[33m>[39m
+ [90m 184 |[39m                     {[33mCOLUMNS[39m[33m.[39mmap((col) [33m=>[39m (
+[31m[1m>[22m[39m[90m 185 |[39m                         [33m<[39m[33mColumn[39m
+ [90m     |[39m                          [31m[1m^[22m[39m
+ [90m 186 |[39m                             key[33m=[39m{col[33m.[39mid}
+ [90m 187 |[39m                             column[33m=[39m{col}
+ [90m 188 |[39m                             tasks[33m=[39m{tasks[33m.[39mfilter((t) [33m=>[39m t[33m.[39mcolumn_id [33m===[39m col[33m.[39mid)}[0m
+Next.js build worker exited with code: 1 and signal: null

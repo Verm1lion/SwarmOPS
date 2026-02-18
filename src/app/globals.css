@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter);
+
+  /* Stitch Colors */
+  --color-primary: #16439c;
+  /* Dashboard Blue */
+  --color-primary-dark: #0d2b66;
+  --color-stitch-blue: #1313ec;
+  /* Login/Brand Blue */
+  --color-stitch-bg-dark: #101022;
+  /* Deep Navy Background */
+  --color-charcoal: #1f2937;
+  --color-secondary: #64748b;
+  --color-accent: #f0f9ff;
+  --color-background-light: #F9FAFB;
+  --color-background-dark: #111621;
+  --color-surface: #ffffff;
+
+  /* Border Radius */
+  --radius-2xl: 2rem;
+
+  /* Shadows */
+  --shadow-bento: 0 2px 10px rgba(0, 0, 0, 0.02), 0 10px 30px rgba(0, 0, 0, 0.04);
+  --shadow-glass: 0 4px 30px rgba(0, 0, 0, 0.1);
+  --shadow-card-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+
+  /* Gradients */
+  --background-image-mesh-gradient: radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%), radial-gradient(at 0% 50%, hsla(263, 91%, 35%, 1) 0, transparent 50%), radial-gradient(at 100% 50%, hsla(245, 67%, 25%, 1) 0, transparent 50%), radial-gradient(at 0% 100%, hsla(232, 23%, 15%, 1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(242, 57%, 16%, 1) 0, transparent 50%);
+  --background-image-dot-pattern: radial-gradient(#e5e7eb 1px, transparent 1px);
+}
+
+/* Custom Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-glass);
+}
+
+.glass-input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.glass-input:focus {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: var(--color-stitch-blue);
+  box-shadow: 0 0 15px rgba(19, 19, 236, 0.3);
+}
+
+.bg-dot-pattern {
+  background-image: var(--background-image-dot-pattern);
+  background-size: 20px 20px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body {
+  font-family: var(--font-inter);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
