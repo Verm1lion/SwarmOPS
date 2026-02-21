@@ -2,11 +2,32 @@
 
 import Link from 'next/link'
 import { logout } from '@/app/actions/auth'
-import { startTransition } from 'react'
+import { startTransition, useState, useEffect } from 'react'
 
 export function Sidebar({ user }: { user: any }) {
+    const [isDark, setIsDark] = useState(false)
+
+    useEffect(() => {
+        const saved = localStorage.getItem('theme')
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setIsDark(true)
+            document.documentElement.classList.add('dark')
+        }
+    }, [])
+
+    function toggleTheme() {
+        const newDark = !isDark
+        setIsDark(newDark)
+        if (newDark) {
+            document.documentElement.classList.add('dark')
+            localStorage.setItem('theme', 'dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+            localStorage.setItem('theme', 'light')
+        }
+    }
+
     function handleLogout() {
-        if (!confirm('Çıkış yapmak istediğinize emin misiniz?')) return
         startTransition(() => {
             logout()
         })
@@ -29,6 +50,20 @@ export function Sidebar({ user }: { user: any }) {
             </nav>
             {/* Bottom Actions */}
             <div className="mt-auto flex flex-col items-center gap-4">
+                {/* Dark Mode Toggle */}
+                <button
+                    onClick={toggleTheme}
+                    className="group relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-white/10 hover:text-yellow-400"
+                    title={isDark ? 'Light Mode' : 'Dark Mode'}
+                >
+                    <span className="material-symbols-outlined text-[22px]">
+                        {isDark ? 'light_mode' : 'dark_mode'}
+                    </span>
+                    <span className="absolute left-14 hidden rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:block group-hover:opacity-100 z-50 whitespace-nowrap">
+                        {isDark ? 'Light Mode' : 'Dark Mode'}
+                    </span>
+                </button>
+
                 <Link href="#" className="group relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-white/10 hover:text-white">
                     <span className="material-symbols-outlined text-[22px]">settings</span>
                     <span className="absolute left-14 hidden rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:block group-hover:opacity-100 z-50 whitespace-nowrap">Ayarlar</span>
