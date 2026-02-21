@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect, startTransition } from 'react'
 import { createPortal } from 'react-dom'
-import { createClient } from '@/utils/supabase/client'
 import { createComment, getComments } from '@/app/actions/comment'
-import { uploadFile, addTaskAttachment } from '@/app/actions/task'
+import { uploadFile, addTaskAttachment, updateTask } from '@/app/actions/task'
 import { v4 as uuidv4 } from 'uuid'
 import { Task } from './TaskCard'
+import { toast } from 'sonner'
 
 interface TaskDetailsDialogProps {
     task: Task | null
@@ -14,6 +14,7 @@ interface TaskDetailsDialogProps {
     onClose: () => void
     projectId: string
     currentUser: string
+    onTaskUpdate?: (updatedTask: Task) => void
 }
 
 interface Comment {
@@ -23,24 +24,40 @@ interface Comment {
     created_at: string
 }
 
-export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUser }: TaskDetailsDialogProps) {
+export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUser, onTaskUpdate }: TaskDetailsDialogProps) {
     const [comments, setComments] = useState<Comment[]>([])
     const [newComment, setNewComment] = useState('')
     const [loadingComments, setLoadingComments] = useState(false)
     const [sendingComment, setSendingComment] = useState(false)
-    const [attachments, setAttachments] = useState<File[]>([])
     const [uploading, setUploading] = useState(false)
     const commentEndRef = useRef<HTMLDivElement>(null)
+
+    // Edit state
+    const [isEditing, setIsEditing] = useState(false)
+    const [editTitle, setEditTitle] = useState('')
+    const [editDescription, setEditDescription] = useState('')
+    const [editPriority, setEditPriority] = useState('')
+    const [editStartDate, setEditStartDate] = useState('')
+    const [editDueDate, setEditDueDate] = useState('')
+    const [editLabels, setEditLabels] = useState('')
+    const [saving, setSaving] = useState(false)
 
     useEffect(() => {
         if (isOpen && task) {
             fetchComments()
+            // Reset edit state when dialog opens
+            setIsEditing(false)
+            setEditTitle(task.title)
+            setEditDescription(task.description || '')
+            setEditPriority(task.priority)
+            setEditStartDate(task.start_date || '')
+            setEditDueDate(task.due_date || '')
+            setEditLabels(task.labels?.join(', ') || '')
         } else {
             setComments([])
         }
     }, [isOpen, task])
 
-    // Scroll to bottom of comments when they change
     useEffect(() => {
         commentEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [comments])
@@ -64,11 +81,49 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
 
             if (result?.success) {
                 setNewComment('')
-                fetchComments() // Refresh comments
+                fetchComments()
+                toast.success('Yorum gönderildi')
             } else {
-                alert('Yorum gönderilemedi.')
+                toast.error('Yorum gönderilemedi')
             }
             setSendingComment(false)
+        })
+    }
+
+    async function handleSaveEdit() {
+        if (!task) return
+        setSaving(true)
+
+        const updates: Record<string, any> = {}
+        if (editTitle !== task.title) updates.title = editTitle
+        if (editDescription !== (task.description || '')) updates.description = editDescription
+        if (editPriority !== task.priority) updates.priority = editPriority
+        if (editStartDate !== (task.start_date || '')) updates.start_date = editStartDate || null
+        if (editDueDate !== (task.due_date || '')) updates.due_date = editDueDate || null
+
+        const newLabels = editLabels.split(',').map(l => l.trim()).filter(Boolean)
+        const oldLabels = task.labels || []
+        if (JSON.stringify(newLabels) !== JSON.stringify(oldLabels)) updates.labels = newLabels
+
+        if (Object.keys(updates).length === 0) {
+            setIsEditing(false)
+            setSaving(false)
+            return
+        }
+
+        startTransition(async () => {
+            const result = await updateTask(task.id, updates, projectId)
+            if (result?.success) {
+                toast.success('Task güncellendi')
+                setIsEditing(false)
+                // Update local state
+                if (onTaskUpdate) {
+                    onTaskUpdate({ ...task, ...updates, labels: editLabels.split(',').map(l => l.trim()).filter(Boolean) })
+                }
+            } else {
+                toast.error('Güncelleme başarısız: ' + (result?.error || ''))
+            }
+            setSaving(false)
         })
     }
 
@@ -91,8 +146,7 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                 const uploadResult = await uploadFile(uploadFormData)
 
                 if (uploadResult.error || !uploadResult.url) {
-                    console.error('Upload Error:', uploadResult.error)
-                    alert('Dosya yüklenirken hata oluştu: ' + file.name)
+                    toast.error('Dosya yüklenemedi: ' + file.name)
                     continue
                 }
 
@@ -100,19 +154,15 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                     const attachResult = await addTaskAttachment(task.id, uploadResult.url, task.media_urls || [], projectId)
 
                     if (attachResult.error) {
-                        console.error('Attach Error:', attachResult.error)
-                        alert('Dosya karta eklenemedi.')
+                        toast.error('Dosya eklenemedi')
                     } else {
-                        // Update local task state temporarily so user sees it immediately if possible, 
-                        // otherwise router.refresh() might be needed but is slow.
-                        // Ideally we have an onTaskUpdate prop.
-                        window.location.reload() // Quick fix to show changes since we rely on server data
+                        toast.success('Dosya eklendi')
+                        window.location.reload()
                     }
                 })
             }
         } catch (error) {
-            console.error(error)
-            alert('Beklenmedik bir hata oluştu.')
+            toast.error('Beklenmedik bir hata oluştu')
         } finally {
             setUploading(false)
         }
@@ -121,66 +171,161 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
     if (!isOpen || !task) return null
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="flex h-[90vh] w-full max-w-4xl flex-col rounded-3xl bg-white shadow-2xl ring-1 ring-gray-200 overflow-hidden scale-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+            <div className="flex h-[90vh] w-full max-w-4xl flex-col rounded-3xl bg-white shadow-2xl ring-1 ring-gray-200 overflow-hidden scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-gray-100 px-8 py-5">
                     <div className="flex items-center gap-3">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide
-                            ${task.priority === 'HIGH' ? 'bg-red-50 text-red-600' :
-                                task.priority === 'MEDIUM' ? 'bg-amber-50 text-amber-600' :
-                                    'bg-blue-50 text-blue-600'}`}>
-                            {task.priority || 'LOW'}
-                        </span>
+                        {isEditing ? (
+                            <select
+                                value={editPriority}
+                                onChange={(e) => setEditPriority(e.target.value)}
+                                className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-gray-200 bg-gray-50 outline-none focus:border-indigo-400"
+                            >
+                                <option value="LOW">LOW</option>
+                                <option value="MEDIUM">MEDIUM</option>
+                                <option value="HIGH">HIGH</option>
+                            </select>
+                        ) : (
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide
+                                ${task.priority === 'HIGH' ? 'bg-red-50 text-red-600' :
+                                    task.priority === 'MEDIUM' ? 'bg-amber-50 text-amber-600' :
+                                        'bg-blue-50 text-blue-600'}`}>
+                                {task.priority || 'LOW'}
+                            </span>
+                        )}
                         <span className="text-gray-400 text-sm">in {task.column_id}</span>
+                        {task.completed_at && (
+                            <span suppressHydrationWarning className="text-emerald-500 text-xs font-semibold flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                                {new Date(task.completed_at).toLocaleDateString()}
+                            </span>
+                        )}
                     </div>
-                    <button onClick={onClose} className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                        <span className="material-symbols-outlined">close</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {!isEditing ? (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                                Düzenle
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setIsEditing(false)}
+                                    className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+                                >
+                                    İptal
+                                </button>
+                                <button
+                                    onClick={handleSaveEdit}
+                                    disabled={saving}
+                                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm disabled:opacity-50 transition-all"
+                                >
+                                    {saving ? 'Kaydediliyor...' : 'Kaydet'}
+                                </button>
+                            </div>
+                        )}
+                        <button onClick={onClose} className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-1 overflow-hidden">
                     {/* Main Content (Left) */}
                     <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-gray-200">
-                        <h1 className="text-xl font-bold text-gray-900 mb-4">{task.title}</h1>
+                        {/* Title */}
+                        {isEditing ? (
+                            <input
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                className="w-full text-xl font-bold text-gray-900 mb-4 px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:border-indigo-400 focus:bg-white outline-none transition-all"
+                            />
+                        ) : (
+                            <h1 className="text-xl font-bold text-gray-900 mb-4">{task.title}</h1>
+                        )}
 
+                        {/* Dates */}
                         <div className="mb-6 grid grid-cols-2 gap-6">
                             <div>
                                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Start Date</h3>
-                                <div suppressHydrationWarning className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                                    {task.start_date ? new Date(task.start_date).toLocaleDateString() : 'Not set'}
-                                </div>
+                                {isEditing ? (
+                                    <input
+                                        type="date"
+                                        value={editStartDate}
+                                        onChange={(e) => setEditStartDate(e.target.value)}
+                                        className="w-full text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-all"
+                                    />
+                                ) : (
+                                    <div suppressHydrationWarning className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                                        {task.start_date ? new Date(task.start_date).toLocaleDateString() : 'Not set'}
+                                    </div>
+                                )}
                             </div>
                             <div>
                                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Due Date</h3>
-                                <div suppressHydrationWarning className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                                    {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Labels</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {task.labels && task.labels.length > 0 ? (
-                                    task.labels.map((label, index) => (
-                                        <span key={index} className="px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100">
-                                            {label}
-                                        </span>
-                                    ))
+                                {isEditing ? (
+                                    <input
+                                        type="date"
+                                        value={editDueDate}
+                                        onChange={(e) => setEditDueDate(e.target.value)}
+                                        className="w-full text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-all"
+                                    />
                                 ) : (
-                                    <span className="text-sm text-gray-400 italic">No labels</span>
+                                    <div suppressHydrationWarning className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                                        {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                                    </div>
                                 )}
                             </div>
                         </div>
 
+                        {/* Labels */}
                         <div className="mb-6">
-                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h3>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                {task.description || 'No description provided.'}
-                            </p>
+                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Labels</h3>
+                            {isEditing ? (
+                                <input
+                                    value={editLabels}
+                                    onChange={(e) => setEditLabels(e.target.value)}
+                                    placeholder="Bug, Feature, Backend (virgülle ayırın)"
+                                    className="w-full text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-all"
+                                />
+                            ) : (
+                                <div className="flex flex-wrap gap-2">
+                                    {task.labels && task.labels.length > 0 ? (
+                                        task.labels.map((label, index) => (
+                                            <span key={index} className="px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100">
+                                                {label}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="text-sm text-gray-400 italic">No labels</span>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
+                        {/* Description */}
+                        <div className="mb-6">
+                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h3>
+                            {isEditing ? (
+                                <textarea
+                                    value={editDescription}
+                                    onChange={(e) => setEditDescription(e.target.value)}
+                                    rows={4}
+                                    className="w-full text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-all resize-none"
+                                    placeholder="Açıklama ekleyin..."
+                                />
+                            ) : (
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                    {task.description || 'No description provided.'}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Attachments */}
                         <div className="mb-8">
                             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center justify-between">
                                 <span>Attachments</span>
@@ -190,7 +335,7 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                                     <input type="file" className="hidden" multiple onChange={handleFileUpload} disabled={uploading} />
                                 </label>
                             </h3>
-                            {uploading && <div className="text-xs text-blue-500 mb-2">Uploading...</div>}
+                            {uploading && <div className="text-xs text-blue-500 mb-2 flex items-center gap-2"><div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-200 border-t-blue-500"></div>Yükleniyor...</div>}
 
                             {task.media_urls && task.media_urls.length > 0 ? (
                                 <div className="grid grid-cols-2 gap-4">
@@ -211,12 +356,13 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                         </div>
                     </div>
 
-                    {/* Sidebar (Right) - Comments & Activity */}
+                    {/* Sidebar (Right) - Comments */}
                     <div className="w-96 border-l border-gray-100 bg-gray-50/50 flex flex-col">
                         <div className="p-5 border-b border-gray-100 bg-white/50 backdrop-blur-sm">
                             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-gray-400">forum</span>
                                 Comments
+                                {comments.length > 0 && <span className="text-xs text-gray-400 font-normal">({comments.length})</span>}
                             </h3>
                         </div>
 

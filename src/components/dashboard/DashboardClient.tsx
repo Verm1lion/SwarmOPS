@@ -2,8 +2,9 @@
 
 import { createProject, deleteProject } from '@/app/actions/project'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, startTransition } from 'react'
 import { useFormStatus } from 'react-dom'
+import { toast } from 'sonner'
 import { RecentActivity, UpcomingDeadlines, WeeklyVelocity, CompletionRateCard, EstimatedCompletionCard } from './StatsTiles'
 import { Sidebar } from '../Sidebar'
 
@@ -60,10 +61,30 @@ export default function DashboardClient({
 
     return (
         <div className="flex h-screen w-full bg-background-light text-slate-900 font-sans overflow-hidden">
+            {/* Mobile Header */}
+            <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-white/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3">
+                <h1 className="text-sm font-bold text-slate-900">Dashboard</h1>
+                <div className="flex items-center gap-2">
+                    {!isGuest && (
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">add</span>
+                        </button>
+                    )}
+                    <button
+                        onClick={() => { startTransition(() => { import('@/app/actions/auth').then(m => m.logout()) }) }}
+                        className="p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">logout</span>
+                    </button>
+                </div>
+            </div>
             <Sidebar user={user} />
 
             {/* Main Content */}
-            <main className="flex flex-1 flex-col overflow-hidden bg-background-light ml-0 md:ml-20 transition-all duration-300">
+            <main className="flex flex-1 flex-col overflow-hidden bg-background-light ml-0 md:ml-20 pt-14 md:pt-0 transition-all duration-300">
                 {/* Header */}
                 <header className="flex h-20 items-center justify-between px-8 py-4 backdrop-blur-sm">
                     <div>
@@ -193,7 +214,7 @@ export default function DashboardClient({
 
                                     <div
                                         className="absolute right-6 top-6 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-800 backdrop-blur-md shadow-sm cursor-pointer hover:bg-white active:scale-95 transition-all flex items-center gap-2"
-                                        onClick={() => navigator.clipboard.writeText(heroProject.access_code)}
+                                        onClick={() => { navigator.clipboard.writeText(heroProject.access_code); toast.success('Access Code kopyalandı!') }}
                                         title="Copy Access Code"
                                     >
                                         <span className="material-symbols-outlined text-[14px]">key</span>

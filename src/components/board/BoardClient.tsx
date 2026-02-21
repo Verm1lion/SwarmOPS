@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, startTransition } from 'react'
+import { toast } from 'sonner'
 import {
     DndContext,
     DragOverlay,
@@ -150,18 +151,32 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
     }
 
     async function handleDelete(taskId: string) {
-        if (!confirm('Bu görevi silmek istediğinize emin misiniz?')) return
         setTasks(tasks.filter(t => t.id !== taskId))
+        toast.success('Görev silindi')
         startTransition(() => {
             deleteTask(taskId, projectId)
         })
     }
 
+    function handleTaskUpdate(updatedTask: Task) {
+        setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))
+    }
+
     return (
         <div className="flex h-screen w-full bg-white bg-dot-pattern text-slate-900 font-sans overflow-hidden">
+            {/* Mobile Header */}
+            <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-white/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3">
+                <h1 className="text-sm font-bold text-slate-900 truncate">{projectName}</h1>
+                <button
+                    onClick={() => { startTransition(() => { import('@/app/actions/auth').then(m => m.logout()) }) }}
+                    className="p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+                >
+                    <span className="material-symbols-outlined text-[20px]">logout</span>
+                </button>
+            </div>
             <Sidebar user={{ email: currentUser + (isGuest ? ' (Guest)' : '') }} />
 
-            <main className="flex flex-1 flex-col overflow-hidden bg-white/50 md:ml-20">
+            <main className="flex flex-1 flex-col overflow-hidden bg-white/50 md:ml-20 pt-14 md:pt-0">
                 {/* Header */}
                 <header className="flex h-16 items-center justify-between px-6 py-4 backdrop-blur-sm border-b border-slate-100 bg-white/80 sticky top-0 z-10">
                     <div className="flex items-center gap-4">
@@ -252,6 +267,7 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                     onClose={() => setSelectedTask(null)}
                     projectId={projectId}
                     currentUser={currentUser}
+                    onTaskUpdate={handleTaskUpdate}
                 />
             </main>
         </div>
