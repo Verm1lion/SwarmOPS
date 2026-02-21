@@ -2,16 +2,23 @@
 
 import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { createCommentSchema } from '@/lib/schemas'
 
 export async function createComment(taskId: string, content: string, authorName: string, projectId: string) {
+    // Zod Validation
+    const parsed = createCommentSchema.safeParse({ taskId, content, authorName, projectId })
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0].message }
+    }
+
     const adminClient = createAdminClient()
 
     const { error } = await adminClient
         .from('comments')
         .insert({
-            task_id: taskId,
-            content,
-            author_name: authorName
+            task_id: parsed.data.taskId,
+            content: parsed.data.content,
+            author_name: parsed.data.authorName
         })
 
     if (error) {
@@ -19,7 +26,7 @@ export async function createComment(taskId: string, content: string, authorName:
         return { error: error.message }
     }
 
-    revalidatePath(`/board/${projectId}`)
+    revalidatePath(`/board/${parsed.data.projectId}`)
     return { success: true }
 }
 

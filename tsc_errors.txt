@@ -1,0 +1,6 @@
+﻿src/app/actions/auth.ts(20,38): error TS2339: Property 'errors' does not exist on type 'ZodError<{ email: string; password: string; }>'.
+src/app/actions/auth.ts(61,38): error TS2339: Property 'errors' does not exist on type 'ZodError<{ accessCode: string; name: string; }>'.
+src/app/actions/comment.ts(11,38): error TS2339: Property 'errors' does not exist on type 'ZodError<{ taskId: string; content: string; authorName: string; projectId: string; }>'.
+src/app/actions/project.ts(26,38): error TS2339: Property 'errors' does not exist on type 'ZodError<{ name: string; }>'.
+src/app/actions/task.ts(23,38): error TS2339: Property 'errors' does not exist on type 'ZodError<{ projectId: string; title: string; description: string; columnId: "IDEA" | "TODO" | "IN_PROGRESS" | "DONE"; priority: "LOW" | "MEDIUM" | "HIGH"; createdBy: string; startDate: string; dueDate: string; labels: string; }>'.
+src/app/actions/task.ts(60,38): error TS2339: Property 'errors' does not exist on type 'ZodError<{ taskId: string; newColumnId: "IDEA" | "TODO" | "IN_PROGRESS" | "DONE"; projectId: string; }>'.

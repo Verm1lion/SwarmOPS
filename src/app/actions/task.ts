@@ -2,26 +2,32 @@
 
 import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { createTaskSchema, updateTaskColumnSchema } from '@/lib/schemas'
 
 export async function createTask(formData: FormData) {
-    const adminClient = createAdminClient() // Use admin/service role to bypass RLS issues for guests
+    const raw = {
+        projectId: formData.get('projectId') as string,
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        columnId: formData.get('columnId') as string,
+        priority: formData.get('priority') as string,
+        createdBy: formData.get('createdBy') as string,
+        startDate: formData.get('startDate') as string,
+        dueDate: formData.get('dueDate') as string,
+        labels: formData.get('labels') as string,
+    }
 
-    const projectId = formData.get('projectId') as string
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const columnId = formData.get('columnId') as string
-    const priority = formData.get('priority') as string
-    const createdBy = formData.get('createdBy') as string
+    // Zod Validation
+    const parsed = createTaskSchema.safeParse(raw)
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0].message }
+    }
 
-    const startDate = formData.get('startDate') as string
-    const dueDate = formData.get('dueDate') as string
-    const labelsString = formData.get('labels') as string
-    const labels = labelsString ? labelsString.split(',').map(l => l.trim()).filter(Boolean) : []
-
-    // Parse media_urls (expecting JSON string or handle simple way)
-    // For simplicity, let's look for "media_urls" as a serialized array since FormData doesn't support arrays directly easily without multiple keys
-    // Client can append multiple "media_urls" keys, then we use getAll.
+    const { projectId, title, description, columnId, priority, createdBy, startDate, dueDate, labels } = parsed.data
+    const labelArray = labels ? labels.split(',').map(l => l.trim()).filter(Boolean) : []
     const mediaUrls = formData.getAll('media_urls') as string[]
+
+    const adminClient = createAdminClient()
 
     const { error } = await adminClient
         .from('tasks')
@@ -35,7 +41,7 @@ export async function createTask(formData: FormData) {
             media_urls: mediaUrls,
             start_date: startDate || null,
             due_date: dueDate || null,
-            labels: labels
+            labels: labelArray
         })
 
     if (error) {
@@ -48,11 +54,17 @@ export async function createTask(formData: FormData) {
 }
 
 export async function updateTaskColumn(taskId: string, newColumnId: string, projectId: string) {
+    // Zod Validation
+    const parsed = updateTaskColumnSchema.safeParse({ taskId, newColumnId, projectId })
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0].message }
+    }
+
     const adminClient = createAdminClient()
 
-    // Build update payload: set completed_at when moving to DONE, clear when moving away
-    const updateData: Record<string, any> = { column_id: newColumnId }
-    if (newColumnId === 'DONE') {
+    // Set completed_at when moving to DONE, clear when moving away
+    const updateData: Record<string, any> = { column_id: parsed.data.newColumnId }
+    if (parsed.data.newColumnId === 'DONE') {
         updateData.completed_at = new Date().toISOString()
     } else {
         updateData.completed_at = null
@@ -61,15 +73,39 @@ export async function updateTaskColumn(taskId: string, newColumnId: string, proj
     const { error } = await adminClient
         .from('tasks')
         .update(updateData)
+        .eq('id', parsed.data.taskId)
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    return { success: true }
+}
+
+export async function updateTask(
+    taskId: string,
+    updates: {
+        title?: string
+        description?: string
+        priority?: string
+        start_date?: string | null
+        due_date?: string | null
+        labels?: string[]
+    },
+    projectId: string
+) {
+    const adminClient = createAdminClient()
+
+    const { error } = await adminClient
+        .from('tasks')
+        .update(updates)
         .eq('id', taskId)
 
     if (error) {
         return { error: error.message }
     }
 
-    // NOTE: revalidatePath removed intentionally.
-    // The board uses optimistic UI updates via local state,
-    // so server-side revalidation is unnecessary and can cause React Error #300.
+    revalidatePath(`/board/${projectId}`)
     return { success: true }
 }
 
@@ -85,13 +121,14 @@ export async function deleteTask(taskId: string, projectId: string) {
         return { error: error.message }
     }
     revalidatePath(`/board/${projectId}`)
+    return { success: true }
 }
 
 export async function uploadFile(formData: FormData) {
     const adminClient = createAdminClient()
     const file = formData.get('file') as File
     const path = formData.get('path') as string
-    const bucket = 'task-attachments' // Hardcoded for security
+    const bucket = 'task-attachments'
 
     if (!file || !path) {
         return { error: 'File or path missing' }
