@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Text, OrbitControls, Environment, Float } from '@react-three/drei'
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, Suspense } from 'react'
 import * as THREE from 'three'
 
 function Bar({ position, height, day, count, color }: { position: [number, number, number], height: number, day: string, count: number, color: string }) {
@@ -87,31 +87,33 @@ export default function VelocityChart3D({ data }: { data: { day: string, count: 
                 <pointLight position={[10, 10, 10]} intensity={1} />
                 <spotLight position={[-10, 10, -10]} angle={0.3} penumbra={1} intensity={1} color="#6366f1" />
 
-                <group position={[0, -1, 0]}>
-                    {bars.map((bar, i) => (
-                        <Bar
-                            key={i}
-                            position={[bar.x, 0, 0]}
-                            height={bar.height}
-                            day={bar.day}
-                            count={bar.count}
-                            color={bar.color}
-                        />
-                    ))}
-                    {/* Floor reflection/base */}
-                    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
-                        <planeGeometry args={[15, 10]} />
-                        <meshStandardMaterial color="#f8fafc" roughness={0.1} metalness={0.1} transparent opacity={0.5} />
-                    </mesh>
-                </group>
+                <Suspense fallback={null}>
+                    <group position={[0, -1, 0]}>
+                        {bars.map((bar, i) => (
+                            <Bar
+                                key={i}
+                                position={[bar.x, 0, 0]}
+                                height={bar.height}
+                                day={bar.day}
+                                count={bar.count}
+                                color={bar.color}
+                            />
+                        ))}
+                        {/* Floor reflection/base */}
+                        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
+                            <planeGeometry args={[15, 10]} />
+                            <meshStandardMaterial color="#f8fafc" roughness={0.1} metalness={0.1} transparent opacity={0.5} />
+                        </mesh>
+                    </group>
 
-                <OrbitControls
-                    enableZoom={false}
-                    enablePan={false}
-                    minPolarAngle={Math.PI / 4}
-                    maxPolarAngle={Math.PI / 2.5}
-                />
-                <Environment preset="city" />
+                    <OrbitControls
+                        enableZoom={false}
+                        enablePan={false}
+                        minPolarAngle={Math.PI / 4}
+                        maxPolarAngle={Math.PI / 2.5}
+                    />
+                    <Environment preset="city" />
+                </Suspense>
             </Canvas>
         </div>
     )

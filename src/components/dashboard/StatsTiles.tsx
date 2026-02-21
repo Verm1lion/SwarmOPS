@@ -113,7 +113,7 @@ export function RecentActivity({ activities }: { activities: any[] }) {
                             <p className="text-sm text-gray-900">
                                 <span className="font-semibold">{activity.user}</span> {activity.content} <span className="font-medium text-primary">{activity.project_name}</span>
                             </p>
-                            <p className="mt-1 text-xs text-gray-500">{new Date(activity.created_at).toLocaleString()}</p>
+                            <p className="mt-1 text-xs text-gray-500" suppressHydrationWarning>{new Date(activity.created_at).toLocaleString()}</p>
                         </div>
                     ))
                 )}
@@ -143,7 +143,7 @@ export function UpcomingDeadlines({ deadlines }: { deadlines: any[] }) {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h4 className="truncate text-sm font-semibold text-gray-900">{deadline.title}</h4>
-                                <p className="truncate text-xs text-gray-500">{deadline.project_name} • {new Date(deadline.due_date).toLocaleDateString()}</p>
+                                <p className="truncate text-xs text-gray-500" suppressHydrationWarning>{deadline.project_name} • {new Date(deadline.due_date).toLocaleDateString()}</p>
                             </div>
                             {deadline.priority === 'High' && (
                                 <span className="flex-none rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700">Urgent</span>

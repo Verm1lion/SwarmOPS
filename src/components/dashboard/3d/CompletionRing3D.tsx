@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Text, Float, Environment } from '@react-three/drei'
-import { useRef } from 'react'
+import { useRef, Suspense } from 'react'
 import * as THREE from 'three'
 
 function Ring({ progress }: { progress: number }) {
@@ -72,10 +72,12 @@ export default function CompletionRing3D({ progress }: { progress: number }) {
             <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
                 <ambientLight intensity={0.5} />
                 <pointLight position={[10, 10, 10]} intensity={1} />
-                <group position={[0, 0, 0]}>
-                    <Ring progress={progress} />
-                </group>
-                <Environment preset="city" />
+                <Suspense fallback={null}>
+                    <group position={[0, 0, 0]}>
+                        <Ring progress={progress} />
+                    </group>
+                    <Environment preset="city" />
+                </Suspense>
             </Canvas>
         </div>
     )

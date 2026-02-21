@@ -143,13 +143,13 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                         <div className="mb-6 grid grid-cols-2 gap-6">
                             <div>
                                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Start Date</h3>
-                                <div className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                                <div suppressHydrationWarning className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                                     {task.start_date ? new Date(task.start_date).toLocaleDateString() : 'Not set'}
                                 </div>
                             </div>
                             <div>
                                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Due Date</h3>
-                                <div className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                                <div suppressHydrationWarning className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                                     {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
                                 </div>
                             </div>
@@ -234,7 +234,7 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                                             <div className="mt-1 ml-1 flex items-center gap-2 text-[10px] text-gray-400 font-medium">
                                                 <span>{comment.author_name}</span>
                                                 <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                                <span>{new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                <span suppressHydrationWarning>{new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
                                         </div>
                                     </div>

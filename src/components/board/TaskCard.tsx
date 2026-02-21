@@ -144,7 +144,7 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
                 {/* Right Side: Avatars, Icons, Delete */}
                 <div className="flex items-center gap-3">
                     {task.due_date && (
-                        <span className={`flex items-center gap-1 text-[10px] font-bold ${new Date(task.due_date) < new Date() ? 'text-rose-500' : 'text-slate-400'}`}>
+                        <span suppressHydrationWarning className={`flex items-center gap-1 text-[10px] font-bold ${new Date(task.due_date) < new Date() ? 'text-rose-500' : 'text-slate-400'}`}>
                             {new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </span>
                     )}
