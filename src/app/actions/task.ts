@@ -59,7 +59,9 @@ export async function updateTaskColumn(taskId: string, newColumnId: string, proj
         return { error: error.message }
     }
 
-    revalidatePath(`/board/${projectId}`)
+    // NOTE: revalidatePath removed intentionally.
+    // The board uses optimistic UI updates via local state,
+    // so server-side revalidation is unnecessary and can cause React Error #300.
     return { success: true }
 }
 
