@@ -50,9 +50,17 @@ export async function createTask(formData: FormData) {
 export async function updateTaskColumn(taskId: string, newColumnId: string, projectId: string) {
     const adminClient = createAdminClient()
 
+    // Build update payload: set completed_at when moving to DONE, clear when moving away
+    const updateData: Record<string, any> = { column_id: newColumnId }
+    if (newColumnId === 'DONE') {
+        updateData.completed_at = new Date().toISOString()
+    } else {
+        updateData.completed_at = null
+    }
+
     const { error } = await adminClient
         .from('tasks')
-        .update({ column_id: newColumnId })
+        .update(updateData)
         .eq('id', taskId)
 
     if (error) {

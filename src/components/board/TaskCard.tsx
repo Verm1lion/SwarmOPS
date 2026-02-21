@@ -18,6 +18,7 @@ export type Task = {
     start_date?: string
     due_date?: string
     labels?: string[]
+    completed_at?: string
 }
 
 interface TaskCardProps {
@@ -147,11 +148,16 @@ export function TaskCard({ task, onDelete, isAdminOrOwner, onClick }: TaskCardPr
 
                 {/* Right Side: Avatars, Icons, Delete */}
                 <div className="flex items-center gap-3">
-                    {task.due_date && (
+                    {/* Date info: completed_at for DONE, due_date otherwise */}
+                    {task.column_id === 'DONE' && task.completed_at ? (
+                        <span suppressHydrationWarning className="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
+                            ✓ {new Date(task.completed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                    ) : task.due_date ? (
                         <span suppressHydrationWarning className={`flex items-center gap-1 text-[10px] font-bold ${new Date(task.due_date) < new Date() ? 'text-rose-500' : 'text-slate-400'}`}>
                             {new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </span>
-                    )}
+                    ) : null}
 
                     {/* Avatars */}
                     <div className="h-6 w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-sm ring-1 ring-slate-100">

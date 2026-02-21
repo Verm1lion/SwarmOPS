@@ -104,11 +104,12 @@ export async function getDashboardData() {
     }).reverse()
 
     const velocityData = last7Days.map(date => {
-        // Count tasks moved to DONE on this date (using updated_at as proxy for completion time)
+        // Count tasks moved to DONE on this date (using completed_at for accuracy, fallback to updated_at)
         const count = tasks.filter(t =>
-            t.column_id === 'DONE' &&
-            t.updated_at &&
-            t.updated_at.startsWith(date)
+            t.column_id === 'DONE' && (
+                (t.completed_at && t.completed_at.startsWith(date)) ||
+                (!t.completed_at && t.updated_at && t.updated_at.startsWith(date))
+            )
         ).length
         const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)
         return { day: dayName, count, date }
@@ -127,23 +128,18 @@ export async function getDashboardData() {
         etcDays = 999 // Infinite/Unknown if 0 velocity
     }
 
-    // 6. Upcoming Deadlines (Mocked for now as 'due_date' might not exist, but prepared)
-    // If 'due_date' exists in tasks, use it. Otherwise mock a few if tasks exist.
-    // We will simulate deadlines for the latest tasks for demonstration if real dates are missing.
+    // 7. Upcoming Deadlines — exclude DONE tasks, only show tasks that have a real due_date
     const upcomingDeadlines = tasks
-        .slice(0, 3)
-        .map((task, i) => {
-            const mockDate = new Date()
-            mockDate.setDate(today.getDate() + (i + 1)) // Future dates
-            return {
-                id: task.id,
-                title: task.title,
-                project_name: projects?.find(p => p.id === task.project_id)?.name || 'Project',
-                due_date: task.due_date || mockDate.toISOString(), // Fallback to mock
-                priority: task.priority || 'Medium'
-            }
-        })
+        .filter(task => task.column_id !== 'DONE' && task.due_date)
+        .map(task => ({
+            id: task.id,
+            title: task.title,
+            project_name: projects?.find(p => p.id === task.project_id)?.name || 'Project',
+            due_date: task.due_date,
+            priority: task.priority || 'Medium'
+        }))
         .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+        .slice(0, 5)
 
     return {
         user,
