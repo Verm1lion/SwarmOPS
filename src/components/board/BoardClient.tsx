@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import {
     DndContext,
     DragOverlay,
@@ -143,14 +143,18 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                 })
             }
 
-            updateTaskColumn(activeId, newColumnId, projectId)
+            startTransition(() => {
+                updateTaskColumn(activeId, newColumnId, projectId)
+            })
         }
     }
 
     async function handleDelete(taskId: string) {
         if (!confirm('Bu görevi silmek istediğinize emin misiniz?')) return
         setTasks(tasks.filter(t => t.id !== taskId))
-        await deleteTask(taskId, projectId)
+        startTransition(() => {
+            deleteTask(taskId, projectId)
+        })
     }
 
     return (
