@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import {
     DndContext,
     DragOverlay,
@@ -149,8 +149,10 @@ export default function Board({ initialTasks, projectId, currentUser, isGuest }:
                 }
             }
 
-            // We trigger server action (silently)
-            updateTaskColumn(activeId, newColumnId, projectId)
+            // We trigger server action (silently) wrapped in startTransition to prevent React Error #300
+            startTransition(() => {
+                updateTaskColumn(activeId, newColumnId, projectId)
+            })
         }
     }
 
@@ -158,7 +160,9 @@ export default function Board({ initialTasks, projectId, currentUser, isGuest }:
         if (!confirm('Bu görevi silmek istediğinize emin misiniz?')) return
 
         setTasks(tasks.filter(t => t.id !== taskId))
-        await deleteTask(taskId, projectId)
+        startTransition(() => {
+            deleteTask(taskId, projectId)
+        })
     }
 
     return (

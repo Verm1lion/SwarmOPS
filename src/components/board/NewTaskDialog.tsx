@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { createTask, uploadFile } from '@/app/actions/task'
 import { Plus } from 'lucide-react'
@@ -76,22 +76,24 @@ export function NewTaskDialog({ projectId, currentUser, onTaskCreated, variant =
             formData.append('projectId', projectId)
             formData.append('createdBy', currentUser)
 
-            const result = await createTask(formData)
+            startTransition(async () => {
+                const result = await createTask(formData)
 
-            if (result?.success) {
-                setIsOpen(false)
-                setAttachments([])
-                // Reset form or better yet, since we are using uncontrolled inputs via FormData, valid enough.
-                // Reset form
-                setIsOpen(false)
-                setAttachments([])
-            } else {
-                alert('Hata oluştu: ' + result?.error)
-            }
+                if (result?.success) {
+                    setIsOpen(false)
+                    setAttachments([])
+                    // Reset form
+                    setIsOpen(false)
+                    setAttachments([])
+                } else {
+                    alert('Hata oluştu: ' + result?.error)
+                }
+                setLoading(false)
+                setUploading(false)
+            })
         } catch (error) {
             console.error(error)
             alert('Beklenmedik bir hata oluştu.')
-        } finally {
             setLoading(false)
             setUploading(false)
         }

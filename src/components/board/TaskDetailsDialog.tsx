@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, startTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/utils/supabase/client'
 import { createComment, getComments } from '@/app/actions/comment'
@@ -59,15 +59,17 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
         if (!task || !newComment.trim()) return
 
         setSendingComment(true)
-        const result = await createComment(task.id, newComment, currentUser, projectId)
+        startTransition(async () => {
+            const result = await createComment(task.id, newComment, currentUser, projectId)
 
-        if (result?.success) {
-            setNewComment('')
-            fetchComments() // Refresh comments
-        } else {
-            alert('Yorum gönderilemedi.')
-        }
-        setSendingComment(false)
+            if (result?.success) {
+                setNewComment('')
+                fetchComments() // Refresh comments
+            } else {
+                alert('Yorum gönderilemedi.')
+            }
+            setSendingComment(false)
+        })
     }
 
     async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -94,17 +96,19 @@ export function TaskDetailsDialog({ task, isOpen, onClose, projectId, currentUse
                     continue
                 }
 
-                const attachResult = await addTaskAttachment(task.id, uploadResult.url, task.media_urls || [], projectId)
+                startTransition(async () => {
+                    const attachResult = await addTaskAttachment(task.id, uploadResult.url, task.media_urls || [], projectId)
 
-                if (attachResult.error) {
-                    console.error('Attach Error:', attachResult.error)
-                    alert('Dosya karta eklenemedi.')
-                } else {
-                    // Update local task state temporarily so user sees it immediately if possible, 
-                    // otherwise router.refresh() might be needed but is slow.
-                    // Ideally we have an onTaskUpdate prop.
-                    window.location.reload() // Quick fix to show changes since we rely on server data
-                }
+                    if (attachResult.error) {
+                        console.error('Attach Error:', attachResult.error)
+                        alert('Dosya karta eklenemedi.')
+                    } else {
+                        // Update local task state temporarily so user sees it immediately if possible, 
+                        // otherwise router.refresh() might be needed but is slow.
+                        // Ideally we have an onTaskUpdate prop.
+                        window.location.reload() // Quick fix to show changes since we rely on server data
+                    }
+                })
             }
         } catch (error) {
             console.error(error)
