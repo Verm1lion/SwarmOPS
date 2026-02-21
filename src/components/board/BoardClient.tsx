@@ -41,8 +41,24 @@ const COLUMNS = [
 export default function BoardClient({ initialTasks, projectId, projectName, currentUser, isGuest }: BoardProps) {
     const [tasks, setTasks] = useState<Task[]>(initialTasks)
     const [activeId, setActiveId] = useState<string | null>(null)
-    const [currentView, setCurrentView] = useState('board') // 'board' or 'list'
+    const [currentView, setCurrentView] = useState('board')
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [priorityFilter, setPriorityFilter] = useState<string>('ALL')
+    const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'priority'>('newest')
+
+    // Filter & sort logic
+    const filteredTasks = tasks.filter(t => {
+        const matchesSearch = searchQuery === '' || t.title.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesPriority = priorityFilter === 'ALL' || t.priority === priorityFilter
+        return matchesSearch && matchesPriority
+    }).sort((a, b) => {
+        if (sortBy === 'priority') {
+            const p = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+            return (p[a.priority] ?? 2) - (p[b.priority] ?? 2)
+        }
+        return 0 // default: keep order from DB (newest first)
+    })
 
     useEffect(() => {
         setTasks(initialTasks)
@@ -189,8 +205,20 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {/* Search */}
+                        <div className="relative hidden md:block">
+                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Ara..."
+                                className="h-9 w-48 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-0 outline-none transition-all"
+                            />
+                        </div>
+
                         {/* View Toggle */}
-                        <div className="flex items-center bg-slate-100 p-1 rounded-lg mr-4">
+                        <div className="flex items-center bg-slate-100 p-1 rounded-lg">
                             <button
                                 onClick={() => setCurrentView('board')}
                                 className={`px-2 py-1 rounded transition-all ${currentView === 'board' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
@@ -207,14 +235,28 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
 
                         <div className="h-6 w-px bg-slate-200 mx-1"></div>
 
-                        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors">
-                            <span className="material-symbols-outlined text-[18px]">filter_list</span>
-                            Filter
-                        </button>
-                        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors">
-                            <span className="material-symbols-outlined text-[18px]">sort</span>
-                            Sort
-                        </button>
+                        {/* Priority Filter */}
+                        <select
+                            value={priorityFilter}
+                            onChange={(e) => setPriorityFilter(e.target.value)}
+                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-600 font-medium focus:border-indigo-400 outline-none cursor-pointer"
+                        >
+                            <option value="ALL">Tüm Öncelik</option>
+                            <option value="HIGH">Yüksek</option>
+                            <option value="MEDIUM">Orta</option>
+                            <option value="LOW">Düşük</option>
+                        </select>
+
+                        {/* Sort */}
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as any)}
+                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-600 font-medium focus:border-indigo-400 outline-none cursor-pointer"
+                        >
+                            <option value="newest">En Yeni</option>
+                            <option value="oldest">En Eski</option>
+                            <option value="priority">Önceliğe Göre</option>
+                        </select>
 
                         <NewTaskDialog
                             projectId={projectId}
@@ -239,7 +281,7 @@ export default function BoardClient({ initialTasks, projectId, projectName, curr
                                 <Column
                                     key={col.id}
                                     column={col}
-                                    tasks={tasks.filter((t) => t.column_id === col.id)}
+                                    tasks={filteredTasks.filter((t) => t.column_id === col.id)}
                                     projectId={projectId}
                                     currentUser={currentUser}
                                     onTaskCreated={(newTask) => setTasks([...tasks, newTask])}
