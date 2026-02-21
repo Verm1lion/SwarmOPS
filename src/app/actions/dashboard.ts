@@ -108,7 +108,7 @@ export async function getDashboardData() {
         const count = tasks.filter(t =>
             t.column_id === 'DONE' && (
                 (t.completed_at && t.completed_at.startsWith(date)) ||
-                (!t.completed_at && t.updated_at && t.updated_at.startsWith(date))
+                (!t.completed_at && t.created_at && t.created_at.startsWith(date))
             )
         ).length
         const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)
